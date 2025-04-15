@@ -66,12 +66,6 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
 
                         if (!isMounted) return;
 
-                        // Format the tokens for display
-                        // const formattedTokens = tokens.input_ids.map((id: number, index: number) => ({
-                        //     id,
-                        //     text: tokens.tokens[index]
-                        // }));
-
                         setTokenData({
                             count: tokens.length,
                             tokens: tokens
@@ -136,12 +130,11 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
                 <Separator className="my-2" />
 
                 <div className="max-h-40 overflow-y-auto custom-scrollbar">
-                    <div className="flex flex-wrap gap-1 pt-1">
+                    <div className="flex flex-wrap pt-1">
                         {tokenData.tokens.slice(0, 100).map((token, i) => (
                             <div
                                 key={`token-${i}`}
-                                className="text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700"
-                                // title={`ID: ${token.id}`}
+                                className="text-xs w-fit rounded text-zinc-300 whitespace-pre border border-transparent hover:bg-zinc-800 hover:border-zinc-700"
                             >
                                 {token.replace(/Ġ/g, ' ')}
                             </div>

@@ -162,15 +162,6 @@ export function Playground() {
 
                     <div>
                       <div className="flex items-center justify-between">
-                        <label className="text-sm text-zinc-400">Tools</label>
-                        <Button variant="ghost" size="sm" className="text-xs h-6 text-zinc-400">
-                          Create...
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between">
                         <label className="text-sm text-zinc-400">System message</label>
                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-zinc-400">
                           <Plus size={14} />
