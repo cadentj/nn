@@ -9,9 +9,10 @@ interface ChatHistoryProps {
     savedConversations: Conversation[];
     onLoadConversation: (conversation: Conversation) => void;
     currentModelType: "chat" | "base";
+    currentModel: string;
 }
 
-export function ChatHistory({ savedConversations, onLoadConversation, currentModelType }: ChatHistoryProps) {
+export function ChatHistory({ savedConversations, onLoadConversation, currentModelType, currentModel }: ChatHistoryProps) {
     const [activeTab, setActiveTab] = useState<"saved" | "recent">("saved");
 
     return (
@@ -40,6 +41,7 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                     onClick={() => onLoadConversation({
                         id: Date.now().toString(),
                         type: currentModelType,
+                        model: currentModel,
                         title: `${currentModelType === "chat" ? "Conversation" : "Prompt"}`,
                         systemMessage: "Describe desired model behavior (tone, tool usage, response style)",
                         messages: [{ role: "user", content: "" }],

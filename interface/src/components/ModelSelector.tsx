@@ -12,7 +12,8 @@ import {
 import { Dispatch, SetStateAction, useState } from "react";
 
 interface ModelSelectorProps {
-    name: string;
+    modelName: string;
+    setModelName: Dispatch<SetStateAction<string>>;
     setModelType: Dispatch<SetStateAction<"base" | "chat">>;
 }
 
@@ -26,9 +27,7 @@ const CHAT_MODELS = [
     "meta-llama/Meta-Llama-3.1-8B-Instruct",
 ]
 
-export function ModelSelector({ name, setModelType }: ModelSelectorProps) {
-
-    const [modelName, setModelName] = useState(name);
+export function ModelSelector({ modelName, setModelName, setModelType }: ModelSelectorProps) {
 
     const handleModelTypeChange = (value: string) => {
         setModelName(value);

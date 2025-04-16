@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from schema import LensRequest
+from .api import lens
 
 
 app = FastAPI()
@@ -16,12 +16,10 @@ app.add_middleware(
     max_age=3600,
 )
 
+app.include_router(lens, prefix="/api")
+
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
-
-@app.get("/lens")
-async def lens():
     return {"message": "Hello World"}
 
 if __name__ == "__main__":

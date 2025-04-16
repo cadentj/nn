@@ -1,0 +1,14 @@
+[models]
+
+[models.one]
+name = "EleutherAI/gpt-j-6b"
+
+[models.one.rename]
+transformer = "model"
+h = "layers"
+
+[models.two]
+name = "meta-llama/Meta-Llama-3.1-8B"
+
+[models.two.rename]
+norm = "ln_f"

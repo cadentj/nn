@@ -16,31 +16,34 @@ import { TestChart } from "@/components/charts/TestChart";
 import { ModelSelector } from "./ModelSelector";
 
 // Helper function to create default conversations (consistent IDs)
-const createDefaultConversation = (type: "chat" | "base"): Conversation => ({
+const createDefaultConversation = (type: "chat" | "base", model: string): Conversation => ({
     id: `default-${Date.now()}-${Math.random().toString(36).substring(7)}`, // More unique ID
     type: type,
+    model: model,
     title: `${type === "chat" ? "Conversation" : "Prompt"}`,
-    systemMessage: "Describe desired model behavior (tone, tool usage, response style)",
+    systemMessage: "",
     messages: [{ role: "user", content: "" }],
     prompt: "",
     isExpanded: true,
     lastUpdated: new Date(),
-    selectedTokenIndices: [-1]
+    selectedTokenIndices: [-1],
 });
 
 export function Playground() {
     const [modelType, setModelType] = useState<"chat" | "base">("base");
+    const [modelName, setModelName] = useState<string>("EleutherAI/gpt-j-6b");
     const [savedConversations, setSavedConversations] = useState<Conversation[]>([]);
     // State for the conversations currently active in the workbench
-    const [activeConversations, setActiveConversations] = useState<Conversation[]>(() => [createDefaultConversation(modelType)]);
+    const [activeConversations, setActiveConversations] = useState<Conversation[]>(() => [createDefaultConversation(modelType, modelName)]);
 
     const handleRun = async () => {
         try {
-            const response = await fetch('http://localhost:8000/lens', {
-                method: 'GET',
+            const response = await fetch('http://localhost:8000/api/lens', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({ conversations: activeConversations }),
             });
             const data = await response.json();
             console.log('Backend response:', data);
@@ -163,6 +166,7 @@ export function Playground() {
                         onLoadConversation={handleLoadConversation}
                         // Pass currentModelType
                         currentModelType={modelType}
+                        currentModel={modelName}
                     />
                 </div>
 
@@ -199,7 +203,7 @@ export function Playground() {
                             <div className="p-4 border-b">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-sm font-medium">Model</h2>
-                                    <ModelSelector name={"EleutherAI/gpt-j-6b"} setModelType={setModelType} />
+                                    <ModelSelector modelName={modelName} setModelName={setModelName} setModelType={setModelType} />
                                 </div>
                                 {/* Add other model config options here if needed */}
                             </div>
