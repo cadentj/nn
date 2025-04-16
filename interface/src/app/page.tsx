@@ -1,5 +1,7 @@
+"use client";
+
 import { Playground } from "@/components/Playground";
 
-export default function PlaygroundPage() {
+export default function Home() {
   return <Playground />;
 }

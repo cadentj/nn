@@ -17,12 +17,6 @@ interface TokenData {
     tokens: { id: number, text: string }[];
 }
 
-interface Token {
-    id: number;
-    text: string;
-    isHighlighted: boolean;
-}
-
 // Use dynamic import for transformers.js to avoid build errors
 let tokenizer: any | null = null;
 let isTokenizerLoading = true;

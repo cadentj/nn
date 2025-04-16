@@ -20,15 +20,6 @@ export function SinglePromptBuilder({
       {isExpanded ? (
         <>
           <div className="flex-1 overflow-y-auto p-4 space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-300">
-                Your prompts
-              </Button>
-              <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-300">
-                Save
-              </Button>
-            </div>
-
             <div className="space-y-6">
               <div>
                 <label className="text-sm text-zinc-400">Prompt</label>
