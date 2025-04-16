@@ -1,7 +1,8 @@
 "use client"
 
 import { TrendingUp } from "lucide-react"
-import { CartesianGrid, Line, LineChart, XAxis, Legend, YAxis } from "recharts"
+import { CartesianGrid, Line, LineChart, XAxis, Legend, YAxis, ResponsiveContainer } from "recharts"
+import { useMemo } from "react";
 
 import {
   Card,
@@ -17,55 +18,107 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-// const chartData = [
-//   { month: "January", desktop: 186, mobile: 80 },
-//   { month: "February", desktop: 305, mobile: 200 },
-//   { month: "March", desktop: 237, mobile: 120 },
-//   { month: "April", desktop: 73, mobile: 190 },
-//   { month: "May", desktop: 209, mobile: 130 },
-//   { month: "June", desktop: 214, mobile: 140 },
-// ]
-
-
-const makeChartData = (numPoints: number, numLines: number) => {
-  const data = Array.from({ length: numPoints }, (_, i) => {
-    // Create base exponential values for each line
-    const baseValues = Array.from({ length: numLines }, (_, j) => {
-      // Different growth rate for each line
-      const growthRate = 0.1 + (j * 0.05); 
-      // Exponential growth with random noise
-      const baseValue = Math.exp(i * growthRate) / Math.exp(numPoints * growthRate);
-      const noise = (Math.random() - 0.5) * 0.25; // Random noise between -0.05 and 0.05
-      return [`prob-${j}`, Math.max(0, Math.min(1, baseValue + noise))]; // Clamp between 0 and 1
-    });
-
-    return {
-      layer: i,
-      ...Object.fromEntries(baseValues)
-    };
-  });
-  return data;
-};
-
-const numLines = 2;
-
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "hsl(var(--chart-1))",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "hsl(var(--chart-2))",
-  },
-} satisfies ChartConfig
+import { LogitLensResponse } from "@/components/workbench/conversation.types";
 
 interface TestChartProps {
   title: string;
   description: string;
+  data: LogitLensResponse | null;
 }
 
-export function TestChart({title, description}: TestChartProps) {
+// Helper to assign colors dynamically
+const defaultColors = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+];
+
+export function TestChart({title, description, data}: TestChartProps) {
+
+  const { chartData, chartConfig } = useMemo(() => {
+    if (!data || !data.model_results || data.model_results.length === 0) {
+      return { chartData: [], chartConfig: {} };
+    }
+
+    const transformedData: Record<number, Record<string, number | string | null>> = {};
+    const dynamicConfig: ChartConfig = {};
+    let maxLayer = 0;
+    let colorIndex = 0; // To cycle through colors for unique lines
+
+    data.model_results.forEach((modelResult) => {
+      const modelName = modelResult.model_name;
+
+      modelResult.layer_results.forEach(layerResult => {
+        const layerIdx = layerResult.layer_idx;
+        maxLayer = Math.max(maxLayer, layerIdx);
+
+        if (!transformedData[layerIdx]) {
+          transformedData[layerIdx] = { layer: layerIdx };
+        }
+
+        // Iterate through probabilities for each selected token index
+        layerResult.pred_probs.forEach((prob, tokenIndex) => {
+          // Create a unique key for the model and token index combination
+          const lineKey = `${modelName}_idx${tokenIndex}`;
+          // Create a label for the legend/tooltip
+          // TODO: Ideally, get the actual token string instead of just the index later
+          const lineLabel = `${modelName} (Token ${tokenIndex})`;
+
+          // Add config entry if this lineKey is new
+          if (!dynamicConfig[lineKey]) {
+            dynamicConfig[lineKey] = {
+              label: lineLabel,
+              color: defaultColors[colorIndex % defaultColors.length],
+            };
+            colorIndex++; // Use the next color
+          }
+
+          // Store the probability for this layer under the unique line key
+          transformedData[layerIdx][lineKey] = prob;
+        });
+      });
+    });
+
+    // Convert the transformedData map to an array sorted by layer
+    const intermediateChartData = Object.values(transformedData).sort((a, b) => (a.layer as number) - (b.layer as number));
+
+    // Ensure all line keys exist in each layer's data point, filling with null if missing
+    const allLineKeys = Object.keys(dynamicConfig);
+    const finalChartData = intermediateChartData.map(layerData => {
+        const completeLayerData = { ...layerData };
+        allLineKeys.forEach(lineKey => {
+            // Check if the key exists for this specific layer object
+            if (!(lineKey in completeLayerData)) {
+                completeLayerData[lineKey] = null; // Add null for missing data points
+            }
+        });
+        return completeLayerData;
+    });
+
+    return { chartData: finalChartData, chartConfig: dynamicConfig };
+
+  }, [data]);
+
+
+  if (!data || chartData.length === 0) {
+      return (
+          <Card>
+              <CardHeader>
+                  <CardTitle>{title}</CardTitle>
+                  <CardDescription>{description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <div className="flex items-center justify-center h-60">
+                      <p className="text-muted-foreground">No data to display yet. Run the analysis.</p>
+                  </div>
+              </CardContent>
+          </Card>
+      );
+  }
+
+
   return (
     <Card>
       <CardHeader>
@@ -73,38 +126,44 @@ export function TestChart({title, description}: TestChartProps) {
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
           <LineChart
             accessibilityLayer
-            data={makeChartData(24, numLines)}
+            data={chartData}
             margin={{
               left: 12,
               right: 12,
+              top: 10,
+              bottom: 10,
             }}
           >
             <CartesianGrid vertical={false} />
             <Legend />
-            <YAxis 
+            <YAxis
+              dataKey="value" // Default key, actual values come from Lines
+              domain={[0, 1]} // Probabilities are between 0 and 1
               label={{ value: 'Probability', angle: -90, position: 'insideLeft' }}
               tickLine={false}
               axisLine={false}
             />
             <XAxis
               dataKey="layer"
+              type="number" // Layers are numerical
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              // tickFormatter={(value) => value.slice(0, 3)}
+              // tickFormatter={(value) => `Layer ${value}`} // Optional: Format ticks
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            {Array.from({ length: numLines }, (_, i) => (
+            {Object.keys(chartConfig).map((modelName) => (
               <Line
-                key={`line-${i}`}
-                dataKey={`prob-${i}`}
+                key={modelName}
+                dataKey={modelName}
                 type="linear"
-                stroke={`var(--color-${i === 0 ? 'desktop' : 'mobile'})`}
+                stroke={chartConfig[modelName]?.color || defaultColors[0]} // Use assigned color
                 strokeWidth={2}
                 dot={false}
+                connectNulls={true} // Connect lines even if there are missing data points
               />
             ))}
           </LineChart>

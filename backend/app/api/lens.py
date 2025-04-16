@@ -88,9 +88,4 @@ def logit_lens(request: LensRequest):
 
 @router.post("/lens")
 async def lens(request: LensRequest):
-    result = logit_lens(request)
-    print(result)
-
-    return {
-        "results": "hello!",
-    }
+    return logit_lens(request)

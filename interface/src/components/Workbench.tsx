@@ -45,29 +45,30 @@ export function Workbench({
                             >
                                 {conv.isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                             </Button>
-                            <input
-                                type="text"
-                                value={conv.title}
-                                onChange={(e) => handleContentUpdate(conv.id, { title: e.target.value })}
-                                className="bg-transparent text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 py-0.5"
-                            />
+                            <div className="flex flex-col">
+                                <input
+                                    type="text"
+                                    value={conv.title}
+                                    onChange={(e) => handleContentUpdate(conv.id, { title: e.target.value })}
+                                    className="bg-transparent text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 py-0.5"
+                                />
+                                <span className="text-xs text-gray-500 px-1">{conv.model}</span>
+                            </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
                                 variant="ghost"
-                                size="sm"
+                                size="icon"
                                 onClick={() => onSaveConversation(conv.id)}
                             >
-                                <Save size={16} className="mr-1" />
-                                Save
+                                <Save size={16}/>
                             </Button>
                             <Button
                                 variant="ghost"
-                                size="sm"
+                                size="icon"
                                 onClick={() => onDeleteConversation(conv.id)}
                             >
-                                <Trash size={16} className="mr-1" />
-                                Delete
+                                <Trash size={16}/>
                             </Button>
                         </div>
                     </div>

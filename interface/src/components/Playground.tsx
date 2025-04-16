@@ -14,6 +14,7 @@ import { ChatHistory } from "@/components/ChatHistory";
 import { Conversation } from "@/components/workbench/conversation.types";
 import { TestChart } from "@/components/charts/TestChart";
 import { ModelSelector } from "./ModelSelector";
+import { LogitLensResponse } from "@/components/workbench/conversation.types";
 
 // Helper function to create default conversations (consistent IDs)
 const createDefaultConversation = (type: "chat" | "base", model: string): Conversation => ({
@@ -36,6 +37,8 @@ export function Playground() {
     // State for the conversations currently active in the workbench
     const [activeConversations, setActiveConversations] = useState<Conversation[]>(() => [createDefaultConversation(modelType, modelName)]);
 
+    const [chartData, setChartData] = useState<LogitLensResponse | null>(null);
+
     const handleRun = async () => {
         try {
             const response = await fetch('http://localhost:8000/api/lens', {
@@ -45,8 +48,8 @@ export function Playground() {
                 },
                 body: JSON.stringify({ conversations: activeConversations }),
             });
-            const data = await response.json();
-            console.log('Backend response:', data);
+            const data: LogitLensResponse = await response.json();
+            setChartData(data);
         } catch (error) {
             console.error('Error sending request:', error);
         }
@@ -84,8 +87,6 @@ export function Playground() {
                 ...conversationToSave,
                 lastUpdated: now,
                 isNew: undefined, // Ensure isNew is not saved
-                // Potentially assign a different ID for the saved state if needed
-                // id: `saved-${conversationToSave.id}-${now.getTime()}`
             };
 
             setSavedConversations(prev => {
@@ -126,8 +127,6 @@ export function Playground() {
                 ? { ...conv, ...updates, lastUpdated: new Date() }
                 : conv
         ));
-        // Optionally mark as unsaved here if significant changes occurred
-        // e.g., if updates.content || updates.messages || etc.
     };
 
     return (
@@ -220,7 +219,7 @@ export function Playground() {
 
                         {/* Token analysis area */}
                         <div className="flex-1 flex bg-zinc-900 flex-col p-4 overflow-auto custom-scrollbar">
-                            <TestChart title="Token Analysis" description="Probability of the target token per layer." />
+                            <TestChart title="Token Analysis" description="Probability of the target token per layer." data={chartData} />
                         </div>
                     </div>
                 </div>
