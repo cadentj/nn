@@ -30,8 +30,8 @@ export function Workbench({
     return (
         <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {conversations.map((conv) => (
-                <div key={conv.id} className="border border-zinc-800 rounded-md overflow-hidden">
-                    <div className="bg-zinc-900 px-4 py-2 flex items-center justify-between">
+                <div key={conv.id} className="border rounded-md overflow-hidden">
+                    <div className=" px-4 py-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Button
                                 variant="ghost"
@@ -90,7 +90,7 @@ export function Workbench({
                 </div>
             ))}
             {conversations.length === 0 && (
-                <p className="text-zinc-500 text-center py-4">No active conversations. Click 'New' to start.</p>
+                <p className="text-center py-4">No active conversations. Click 'New' to start.</p>
             )}
         </div>
     );

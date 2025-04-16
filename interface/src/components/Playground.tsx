@@ -6,13 +6,14 @@ import {
     History,
     BarChart3,
     Plus,
+    Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Workbench } from "@/components/Workbench";
 import { ChatHistory } from "@/components/ChatHistory";
 import { Conversation } from "@/components/workbench/conversation.types";
-import { TestChart } from "@/components/TestChart";
+import { TestChart } from "@/components/charts/TestChart";
+import { ModelSelector } from "./ModelSelector";
 
 // Helper function to create default conversations (consistent IDs)
 const createDefaultConversation = (type: "chat" | "base"): Conversation => ({
@@ -31,6 +32,21 @@ export function Playground() {
     const [savedConversations, setSavedConversations] = useState<Conversation[]>([]);
     // State for the conversations currently active in the workbench
     const [activeConversations, setActiveConversations] = useState<Conversation[]>(() => [createDefaultConversation(modelType)]);
+
+    const handleRun = async () => {
+        try {
+            const response = await fetch('http://localhost:8000/lens', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            console.log('Backend response:', data);
+        } catch (error) {
+            console.error('Error sending request:', error);
+        }
+    };
 
     // Update handleLoadConversation to ADD to active conversations
     const handleLoadConversation = (conversationToLoad: Conversation) => {
@@ -110,23 +126,9 @@ export function Playground() {
         // e.g., if updates.content || updates.messages || etc.
     };
 
-    // Add handler to add a new default conversation to the workbench
-    const handleAddConversation = () => {
-        setActiveConversations(prev => [...prev, createDefaultConversation(modelType)]);
-    };
-
-    // Handler for changing model type - also updates default for new conversations
-     const handleModelTypeChange = (newModelType: "chat" | "base") => {
-        setModelType(newModelType);
-        // Optionally, clear or update existing active conversations based on the new type,
-        // or just let the user manage them. For now, just set the type for future adds.
-        // If you want to reset the workbench on type change:
-        // setActiveConversations([createDefaultConversation(newModelType)]);
-    };
-
     return (
-        <div className="flex flex-col h-screen bg-zinc-950 text-white">
-            <header className="border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
+        <div className="flex flex-col h-screen text-white">
+            <header className="border-b  px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
@@ -134,19 +136,19 @@ export function Playground() {
                         </div>
                         <div className="text-sm font-medium">AI Playground</div>
                     </div>
-                    <div className="h-4 border-l border-zinc-700" />
+                    <div className="h-4 border-l" />
                     <div className="text-sm font-medium">Token Analysis</div>
                 </div>
 
                 <div className="flex items-center gap-4">
                     <nav className="flex">
                         <Button variant="ghost" size="sm" className="btn-high-contrast">Playground</Button>
-                        <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">Dashboard</Button>
-                        <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">Docs</Button>
-                        <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">API reference</Button>
+                        <Button variant="ghost" size="sm">Dashboard</Button>
+                        <Button variant="ghost" size="sm">Docs</Button>
+                        <Button variant="ghost" size="sm">API reference</Button>
                     </nav>
 
-                    <div className="h-8 w-8 rounded-full bg-zinc-700 flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-full flex items-center justify-center">
                         <span className="text-xs text-white">U</span>
                     </div>
                 </div>
@@ -154,7 +156,7 @@ export function Playground() {
 
             <div className="flex flex-1 min-h-0">
                 {/* Left sidebar */}
-                <div className="w-64 border-r border-zinc-800 bg-zinc-950">
+                <div className="w-64 border-r ">
                     <ChatHistory
                         savedConversations={savedConversations}
                         onLoadConversation={handleLoadConversation}
@@ -165,49 +167,38 @@ export function Playground() {
 
                 {/* Main content */}
                 <div className="flex-1 flex flex-col">
-                     {/* Top bar within main content */}
-                    <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+                    {/* Top bar within main content */}
+                    <div className="p-4 border-b flex items-center justify-between">
                         {/* ... existing title and buttons ... */}
                         <h1 className="text-lg font-medium">Token Analyzer</h1>
 
                         <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
-                                <Code size={16} className="mr-2" />
+                            <Button variant="ghost" size="sm">
+                                <Code size={16} />
                                 Code
                             </Button>
-                            <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
-                                <BarChart3 size={16} className="mr-2" />
+                            <Button variant="ghost" size="sm">
+                                <BarChart3 size={16} />
                                 Compare
                             </Button>
-                            <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
-                                <History size={16} className="mr-2" />
+                            <Button variant="ghost" size="sm">
+                                <History size={16} />
                                 History
                             </Button>
-                             {/* Add button for New Conversation */}
-                             <Button variant="outline" size="sm" onClick={handleAddConversation}>
-                                <Plus size={16} className="mr-1" />
-                                New
+                            <Button variant="ghost" size="sm" onClick={handleRun}>
+                                <Play size={16} />
+                                Run
                             </Button>
                         </div>
                     </div>
 
                     <div className="flex flex-1 min-h-0">
                         {/* Prompt configuration / Workbench area */}
-                        <div className="w-[35%] border-r border-zinc-800 flex flex-col"> {/* Use flex-col */}
-                            <div className="p-4 border-b border-zinc-800">
+                        <div className="w-[35%] border-r flex flex-col"> {/* Use flex-col */}
+                            <div className="p-4 border-b">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-sm font-medium">Model</h2>
-                                    {/* Use the updated model type change handler */}
-                                    <Select value={modelType} onValueChange={handleModelTypeChange}>
-                                        {/* ... Select options ... */}
-                                         <SelectTrigger className="w-[180px]">
-                                            <SelectValue placeholder="Select model" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="chat">llama-chat</SelectItem>
-                                            <SelectItem value="base">llama</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <ModelSelector name={"EleutherAI/gpt-j-6b"} setModelType={setModelType} />
                                 </div>
                                 {/* Add other model config options here if needed */}
                             </div>
@@ -218,14 +209,13 @@ export function Playground() {
                                 onUpdateConversation={handleUpdateConversation}
                                 onSaveConversation={handleSaveConversation}
                                 onDeleteConversation={handleDeleteConversation}
-                                // No longer need modelType or initialConversation here
+                            // No longer need modelType or initialConversation here
                             />
                         </div>
 
                         {/* Token analysis area */}
-                        <div className="flex-1 bg-zinc-900 flex flex-col p-4 overflow-auto custom-scrollbar">
-                             {/* <p className="text-zinc-400">Token analysis view (coming soon)</p> */}
-                             <TestChart />
+                        <div className="flex-1 flex bg-zinc-900 flex-col p-4 overflow-auto custom-scrollbar">
+                            <TestChart title="Token Analysis" description="Probability of the target token per layer." />
                         </div>
                     </div>
                 </div>

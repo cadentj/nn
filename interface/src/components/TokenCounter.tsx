@@ -8,7 +8,7 @@ import { Hash } from "lucide-react";
 import { AutoTokenizer } from '@huggingface/transformers';
 
 interface TokenCounterProps {
-    text: string | { role: string; content: string }[];
+    text: string | { role: string; content: string }[] | null;
     isLoading?: boolean;
 }
 
@@ -18,7 +18,7 @@ interface TokenData {
 }
 
 // Use dynamic import for transformers.js to avoid build errors
-let tokenizer: any | null = null;
+let tokenizer: AutoTokenizer | null = null;
 let isTokenizerLoading = true;
 
 export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
@@ -184,25 +184,8 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
         if (!tokenData) return null;
 
         return (
-            <div>
-                <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                        <Hash size={16} className="text-zinc-400" />
-                        <span className="text-sm font-medium">Token Count</span>
-                    </div>
-                    <div className="text-lg font-bold">
-                        {tokenData.count}
-                        {highlightedTokens.length > 0 && (
-                            <span className="text-sm text-zinc-400 ml-2">
-                                ({highlightedTokens.length} selected)
-                            </span>
-                        )}
-                    </div>
-                </div>
-
-                <Separator className="my-2" />
-
-                <div 
+            <>
+                <div
                     className="max-h-40 overflow-y-auto custom-scrollbar select-none"
                     ref={containerRef}
                     onMouseDown={handleMouseDown}
@@ -229,9 +212,8 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
                                         key={key}
                                         {...commonProps}
                                         // Use w-full for line break, adjust styles to match other tokens
-                                        className={`text-xs w-full rounded text-zinc-300 whitespace-pre border hover:bg-zinc-800 hover:border-zinc-700 select-none ${
-                                            isHighlighted ? highlightStyle : 'border-transparent'
-                                        }`}
+                                        className={`text-xs w-full rounded text-zinc-300 whitespace-pre border hover:bg-zinc-800 hover:border-zinc-700 select-none ${isHighlighted ? highlightStyle : 'border-transparent'
+                                            }`}
                                         // Ensure flex-basis is 100% to force wrap
                                         style={{ ...commonProps.style, flexBasis: '100%' }}
                                     >
@@ -243,9 +225,8 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
                                     <div
                                         key={key}
                                         {...commonProps}
-                                        className={`text-xs w-fit rounded text-zinc-300 whitespace-pre border hover:bg-zinc-800 hover:border-zinc-700 select-none ${
-                                            isHighlighted ? highlightStyle : 'border-transparent'
-                                        }`}
+                                        className={`text-xs w-fit rounded text-zinc-300 whitespace-pre border hover:bg-zinc-800 hover:border-zinc-700 select-none ${isHighlighted ? highlightStyle : 'border-transparent'
+                                            }`}
                                     >
                                         {fixedText}
                                     </div>
@@ -254,20 +235,32 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
                         })}
                     </div>
                 </div>
-            </div>
+
+                <Separator className="my-2" />
+
+                <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-400">Token Count</span>
+                    <div className="text-sm text-zinc-300">
+                        {tokenData.count}
+                        {highlightedTokens.length > 0 && (
+                            <span className="text-xs text-zinc-500 ml-1">
+                                ({highlightedTokens.length} selected)
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </>
         );
     };
 
     return (
-        <Card className="border-zinc-800 bg-zinc-900 text-white">
-            <CardContent className="p-4">
-                {isLoading || isLocalLoading || isTokenizerLoading
-                    ? renderLoading()
-                    : error
-                        ? renderError()
-                        : renderContent()
-                }
-            </CardContent>
-        </Card>
+        <div className="bg-zinc-900 p-4">
+            {isLoading || isLocalLoading || isTokenizerLoading
+                ? renderLoading()
+                : error
+                    ? renderError()
+                    : renderContent()
+            }
+        </div>
     );
 }
