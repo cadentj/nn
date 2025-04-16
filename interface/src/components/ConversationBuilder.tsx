@@ -32,16 +32,17 @@ export function ConversationBuilder({
     };
 
     const deleteMessage = (index: number) => {
+        console.log('deleting message', index);
         const updatedMessages = [...messages];
         updatedMessages.splice(index, 1);
         onMessagesChange(updatedMessages);
     };
 
-    // Combined text for tokenization
-    const allText = [
-        systemMessage,
-        ...messages.map(m => m.content)
-    ].join("\n\n");
+    // Chat object array for message data
+    const chat = [
+        { role: "system", content: systemMessage },
+        ...messages
+    ];
 
     return (
         <div className="flex flex-col h-full">
@@ -90,11 +91,11 @@ export function ConversationBuilder({
                     </div>
 
                     <div className="border-t border-zinc-800">
-                        <TokenCounter text={allText} />
+                        <TokenCounter text={chat} />
                     </div>
                 </>
             ) : (
-                <TokenCounter text={allText} />
+                <TokenCounter text={chat} />
             )}
         </div>
     );

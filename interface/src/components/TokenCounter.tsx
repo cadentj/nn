@@ -8,7 +8,7 @@ import { Hash } from "lucide-react";
 import { AutoTokenizer } from '@huggingface/transformers';
 
 interface TokenCounterProps {
-    text: string;
+    text: string | { role: string; content: string }[];
     isLoading?: boolean;
 }
 
@@ -40,7 +40,7 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
                 // Only load in browser
                 // const { pipeline } = await import('@xenova/transformers');
                 // tokenizer = await pipeline('tokenizer', 'Xenova/gpt2');
-                tokenizer = await AutoTokenizer.from_pretrained('openai-community/gpt2');
+                tokenizer = await AutoTokenizer.from_pretrained("HuggingFaceH4/zephyr-7b-beta");
                 isTokenizerLoading = false;
             } catch (err) {
                 console.error('Error initializing tokenizer:', err);
@@ -64,10 +64,20 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
                 setIsLocalLoading(true);
                 setError(null);
 
-                if (text.trim()) {
+                let textToTokenize = '';
+                if (Array.isArray(text)) {
+                    // If text is an array of message objects, apply chat template
+                    textToTokenize = await tokenizer.apply_chat_template(text, { tokenize: false });
+                } else {
+                    textToTokenize = text;
+                }
+
+                if (textToTokenize.trim()) {
                     // Process in browser only
                     if (typeof window !== 'undefined') {
-                        const tokens = await tokenizer.tokenize(text, { add_special_tokens: false });
+                        const tokens = await tokenizer.tokenize(textToTokenize, { add_special_tokens: false });
+
+                        console.log('tokens', tokens);
 
                         if (!isMounted) return;
 
@@ -149,6 +159,12 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
         setHighlightedTokens(newHighlightedTokens);
     };
 
+    const fixToken = (token: string) => {
+        token = token.replace(/Ġ/g, ' ');
+        token = token.replace("<0x0A>", '\\n');
+        return token;
+    }
+
     const renderLoading = () => (
         <div className="flex items-center justify-center h-32">
             <div className="animate-pulse text-zinc-400 dark:text-zinc-600">
@@ -195,18 +211,21 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
                     style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
                 >
                     <div className="flex flex-wrap pt-1">
-                        {tokenData.tokens.slice(0, 100).map((token, i) => (
-                            <div
-                                key={`token-${i}`}
-                                data-token-id={i}
-                                className={`text-xs w-fit rounded text-zinc-300 whitespace-pre border border-transparent hover:bg-zinc-800 hover:border-zinc-700 select-none ${
-                                    highlightedTokens.includes(i) ? 'bg-zinc-800 border-zinc-700' : ''
-                                }`}
-                                style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-                            >
-                                {token.text.replace(/Ġ/g, ' ')}
-                            </div>
-                        ))}
+                        {tokenData.tokens.slice(0, 100).map((token, i) => {
+                            const fixedText = fixToken(token.text);
+                            return (
+                                <div
+                                    key={`token-${i}`}
+                                    data-token-id={i}
+                                    className={`text-xs w-fit rounded text-zinc-300 whitespace-pre border border-transparent hover:bg-zinc-800 hover:border-zinc-700 select-none ${
+                                        highlightedTokens.includes(i) ? 'bg-zinc-800 border-zinc-700' : ''
+                                    }`}
+                                    style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                                >
+                                    {fixedText}
+                                </div>
+                            );
+                        })}
                         {tokenData.tokens.length > 100 && (
                             <div className="text-xs text-zinc-500 px-1.5 py-0.5 select-none" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
                                 + {tokenData.tokens.length - 100} more tokens

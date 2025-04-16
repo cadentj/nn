@@ -1,116 +1,138 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
-    ArrowRight,
     Code,
     History,
-    Save,
-    Settings,
     BarChart3,
-    MessagesSquare,
     Plus,
-    Trash,
-    Mic,
-    Info,
-    LayoutDashboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
-import { TokenCounter } from "@/components/TokenCounter";
-import { TokenVisualizer } from "@/components/TokenVisualizer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ConversationBuilder } from "@/components/ConversationBuilder";
-import { SinglePromptBuilder } from "@/components/SinglePromptBuilder";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Workbench } from "@/components/Workbench";
 import { ChatHistory } from "@/components/ChatHistory";
+import { Conversation } from "@/components/workbench/conversation.types";
 
-interface Message {
-    role: "user" | "assistant";
-    content: string;
-}
-
-interface TokenData {
-    count: number;
-    tokens: { id: number, text: string }[];
-}
-
-interface Conversation {
-    id: string;
-    type: "chat" | "base";
-    title: string;
-    systemMessage: string;
-    messages: Message[];
-    prompt: string;
-    isExpanded: boolean;
-    lastUpdated: Date;
-    isNew?: boolean;
-}
+// Helper function to create default conversations (consistent IDs)
+const createDefaultConversation = (type: "chat" | "base"): Conversation => ({
+    id: `default-${Date.now()}-${Math.random().toString(36).substring(7)}`, // More unique ID
+    type: type,
+    title: `New ${type === "chat" ? "Conversation" : "Prompt"}`,
+    systemMessage: "Describe desired model behavior (tone, tool usage, response style)",
+    messages: [{ role: "user", content: "" }],
+    prompt: "",
+    isExpanded: true,
+    lastUpdated: new Date()
+});
 
 export function Playground() {
-    const [systemMessage, setSystemMessage] = useState("Describe desired model behavior (tone, tool usage, response style)");
-    const [messages, setMessages] = useState<Message[]>([
-        { role: "user", content: "Example prompt to analyze token distribution patterns" },
-        { role: "assistant", content: "" }
-    ]);
-    const [prompt, setPrompt] = useState("");
     const [modelType, setModelType] = useState<"chat" | "base">("chat");
-    const [tokenData, setTokenData] = useState<TokenData | null>(null);
-    const [isTokenizing, setIsTokenizing] = useState(false);
-    const [activeTab, setActiveTab] = useState("token-stats");
     const [savedConversations, setSavedConversations] = useState<Conversation[]>([]);
-    const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
+    // State for the conversations currently active in the workbench
+    const [activeConversations, setActiveConversations] = useState<Conversation[]>(() => [createDefaultConversation(modelType)]);
 
-    // Combined text for tokenization
-    const allText = modelType === "chat"
-        ? [systemMessage, ...messages.map(m => m.content)].join("\n\n")
-        : prompt;
-
-    const handleLoadConversation = (conversation: Conversation) => {
-        // Create a new conversation with a fresh ID
-        const newConversation = {
-            ...conversation,
-            id: Date.now().toString(),
-            isExpanded: true,
-            lastUpdated: new Date()
-        };
-
-        // Update the model type based on the loaded conversation
-        setModelType(conversation.type);
-
-        // If it's a chat conversation, update the system message and messages
-        if (conversation.type === "chat") {
-            setSystemMessage(conversation.systemMessage);
-            setMessages(conversation.messages);
-        } else {
-            // If it's a base conversation, update the prompt
-            setPrompt(conversation.prompt);
+    // Update handleLoadConversation to ADD to active conversations
+    const handleLoadConversation = (conversationToLoad: Conversation) => {
+        // Check if the conversation (by ID) is already active
+        if (activeConversations.some(conv => conv.id === conversationToLoad.id)) {
+            // Optional: If it's already active, maybe just ensure it's expanded
+            // setActiveConversations(prev => prev.map(conv =>
+            //     conv.id === conversationToLoad.id ? { ...conv, isExpanded: true } : conv
+            // ));
+            console.log("Conversation already active:", conversationToLoad.id);
+            // Or simply do nothing if it's already loaded
+            return;
         }
 
-        // Set the current conversation
-        setCurrentConversation(newConversation);
-    };
-
-    const handleSaveConversation = (conversation: Conversation) => {
-        const savedConversation = {
-            ...conversation,
-            id: `saved-${Date.now()}`,
-            lastUpdated: new Date()
+        const newActiveConversation = {
+            ...conversationToLoad,
+            // Reusing the original ID
+            id: conversationToLoad.id,
+            isExpanded: true, // Ensure it's expanded when loaded
+            lastUpdated: new Date(),
+            isNew: undefined
         };
-        setSavedConversations([...savedConversations, savedConversation]);
+
+        // Set the model type based on the *first* conversation's type,
+        // or the type of the one just loaded if it's the only one.
+        // This handles the case where the workbench was empty.
+        // A more complex UI might allow mixed types, but for now,
+        // let's assume the Select dropdown controls the type for *new* conversations.
+        // We don't necessarily need to change the global modelType when loading.
+        // setModelType(newActiveConversation.type); // Consider if this line is desired behavior
+
+        // Add the loaded conversation to the existing list
+        setActiveConversations(prev => [...prev, newActiveConversation]);
     };
 
+    // Update handleSaveConversation to find the conversation in activeConversations
+    const handleSaveConversation = (id: string) => {
+        const conversationToSave = activeConversations.find(conv => conv.id === id);
+        if (conversationToSave) {
+            const now = new Date();
+            // Create a saveable version (clean up transient flags if any)
+            const savedVersion: Conversation = {
+                ...conversationToSave,
+                lastUpdated: now,
+                isNew: undefined, // Ensure isNew is not saved
+                // Potentially assign a different ID for the saved state if needed
+                // id: `saved-${conversationToSave.id}-${now.getTime()}`
+            };
+
+            setSavedConversations(prev => {
+                // Check if a conversation with the same ID already exists
+                const existingIndex = prev.findIndex(conv => conv.id === savedVersion.id);
+                if (existingIndex !== -1) {
+                    // Update existing conversation
+                    const updatedSaved = [...prev];
+                    updatedSaved[existingIndex] = savedVersion;
+                    return updatedSaved;
+                } else {
+                    // Add as new saved conversation
+                    return [...prev, savedVersion];
+                }
+            });
+            // Optionally, update the title in the active conversation to remove "(unsaved)" if applicable
+            handleUpdateConversation(id, { title: savedVersion.title });
+        }
+    };
+
+    // Update handleDeleteConversation to allow removing the last item
     const handleDeleteConversation = (id: string) => {
-        // Remove from saved conversations list
-        setSavedConversations(savedConversations.filter(conv => conv.id !== id));
+        // Remove from active list
+        setActiveConversations(prev => {
+            const remaining = prev.filter(conv => conv.id !== id);
+            // Allow the list to become empty - DO NOT add a default one here
+            // if (remaining.length === 0) {
+            //     return [createDefaultConversation(modelType)];
+            // }
+            return remaining;
+        });
+    };
 
-        // If we deleted the currently active conversation, set currentConversation to null
-        // This forces the Workbench to reset to its default state
-        if (currentConversation && currentConversation.id === id) {
-            setCurrentConversation(null);
-        }
+    // Add handler to update a specific active conversation
+    const handleUpdateConversation = (id: string, updates: Partial<Conversation>) => {
+        setActiveConversations(prev => prev.map(conv =>
+            conv.id === id
+                ? { ...conv, ...updates, lastUpdated: new Date() }
+                : conv
+        ));
+        // Optionally mark as unsaved here if significant changes occurred
+        // e.g., if updates.content || updates.messages || etc.
+    };
+
+    // Add handler to add a new default conversation to the workbench
+    const handleAddConversation = () => {
+        setActiveConversations(prev => [...prev, createDefaultConversation(modelType)]);
+    };
+
+    // Handler for changing model type - also updates default for new conversations
+     const handleModelTypeChange = (newModelType: "chat" | "base") => {
+        setModelType(newModelType);
+        // Optionally, clear or update existing active conversations based on the new type,
+        // or just let the user manage them. For now, just set the type for future adds.
+        // If you want to reset the workbench on type change:
+        // setActiveConversations([createDefaultConversation(newModelType)]);
     };
 
     return (
@@ -147,13 +169,16 @@ export function Playground() {
                     <ChatHistory
                         savedConversations={savedConversations}
                         onLoadConversation={handleLoadConversation}
+                        // Pass currentModelType
                         currentModelType={modelType}
                     />
                 </div>
 
                 {/* Main content */}
                 <div className="flex-1 flex flex-col">
+                     {/* Top bar within main content */}
                     <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+                        {/* ... existing title and buttons ... */}
                         <h1 className="text-lg font-medium">Token Analyzer</h1>
 
                         <div className="flex items-center gap-2">
@@ -169,17 +194,24 @@ export function Playground() {
                                 <History size={16} className="mr-2" />
                                 History
                             </Button>
+                             {/* Add button for New Conversation */}
+                             <Button variant="outline" size="sm" onClick={handleAddConversation}>
+                                <Plus size={16} className="mr-1" />
+                                New
+                            </Button>
                         </div>
                     </div>
 
                     <div className="flex flex-1 min-h-0">
-                        {/* Prompt configuration */}
-                        <div className="w-[35%] border-r border-zinc-800 overflow-y-auto custom-scrollbar">
+                        {/* Prompt configuration / Workbench area */}
+                        <div className="w-[35%] border-r border-zinc-800 flex flex-col"> {/* Use flex-col */}
                             <div className="p-4 border-b border-zinc-800">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-sm font-medium">Model</h2>
-                                    <Select value={modelType} onValueChange={(value: "chat" | "base") => setModelType(value)}>
-                                        <SelectTrigger className="w-[180px]">
+                                    {/* Use the updated model type change handler */}
+                                    <Select value={modelType} onValueChange={handleModelTypeChange}>
+                                        {/* ... Select options ... */}
+                                         <SelectTrigger className="w-[180px]">
                                             <SelectValue placeholder="Select model" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -188,20 +220,31 @@ export function Playground() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                {/* Add other model config options here if needed */}
                             </div>
 
+                            {/* Pass activeConversations and new handlers to Workbench */}
                             <Workbench
-                                modelType={modelType}
+                                conversations={activeConversations}
+                                onUpdateConversation={handleUpdateConversation}
                                 onSaveConversation={handleSaveConversation}
-                                onLoadConversation={handleLoadConversation}
                                 onDeleteConversation={handleDeleteConversation}
-                                initialConversation={currentConversation || undefined}
+                                // No longer need modelType or initialConversation here
                             />
                         </div>
 
                         {/* Token analysis area */}
                         <div className="flex-1 bg-zinc-900 flex flex-col p-4 overflow-auto custom-scrollbar">
-
+                            {/* Token analysis UI will go here */}
+                             <p className="text-zinc-400">Token analysis view (coming soon)</p>
+                             {/* Example: Display raw text for tokenization */}
+                             {/* <pre className="text-xs whitespace-pre-wrap mt-4">
+                                {activeConversations.map(conv =>
+                                    conv.type === 'chat'
+                                    ? [conv.systemMessage, ...conv.messages.map(m => `${m.role}: ${m.content}`)].join("\n\n")
+                                    : conv.prompt
+                                ).join("\n\n---\n\n")}
+                             </pre> */}
                         </div>
                     </div>
                 </div>

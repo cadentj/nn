@@ -40,7 +40,7 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                     onClick={() => onLoadConversation({
                         id: Date.now().toString(),
                         type: currentModelType,
-                        title: `New ${currentModelType === "chat" ? "Conversation" : "Prompt"}`,
+                        title: `${currentModelType === "chat" ? "Conversation" : "Prompt"}`,
                         systemMessage: "Describe desired model behavior (tone, tool usage, response style)",
                         messages: [{ role: "user", content: "" }],
                         prompt: "",
