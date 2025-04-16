@@ -68,25 +68,25 @@ export function Workbench({
                         </div>
                     </div>
 
-                    {conv.isExpanded && (
-                        <div >
-                            {conv.type === "chat" ? (
-                                <ConversationBuilder
-                                    systemMessage={conv.systemMessage}
-                                    onSystemMessageChange={(msg) => handleContentUpdate(conv.id, { systemMessage: msg })}
-                                    messages={conv.messages}
-                                    onMessagesChange={(msgs) => handleContentUpdate(conv.id, { messages: msgs })}
-                                    isExpanded={conv.isExpanded}
-                                />
-                            ) : (
-                                <SinglePromptBuilder
-                                    prompt={conv.prompt}
-                                    onPromptChange={(p) => handleContentUpdate(conv.id, { prompt: p })}
-                                    isExpanded={conv.isExpanded}
-                                />
-                            )}
-                        </div>
-                    )}
+                    {/* {conv.isExpanded && ( */}
+                    <div >
+                        {conv.type === "chat" ? (
+                            <ConversationBuilder
+                                systemMessage={conv.systemMessage}
+                                onSystemMessageChange={(msg) => handleContentUpdate(conv.id, { systemMessage: msg })}
+                                messages={conv.messages}
+                                onMessagesChange={(msgs) => handleContentUpdate(conv.id, { messages: msgs })}
+                                isExpanded={conv.isExpanded}
+                            />
+                        ) : (
+                            <SinglePromptBuilder
+                                prompt={conv.prompt}
+                                onPromptChange={(p) => handleContentUpdate(conv.id, { prompt: p })}
+                                isExpanded={conv.isExpanded}
+                            />
+                        )}
+                    </div>
+                    {/* )} */}
                 </div>
             ))}
             {conversations.length === 0 && (

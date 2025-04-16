@@ -40,7 +40,7 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
                 // Only load in browser
                 // const { pipeline } = await import('@xenova/transformers');
                 // tokenizer = await pipeline('tokenizer', 'Xenova/gpt2');
-                tokenizer = await AutoTokenizer.from_pretrained("HuggingFaceH4/zephyr-7b-beta");
+                tokenizer = await AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B-Instruct");
                 isTokenizerLoading = false;
             } catch (err) {
                 console.error('Error initializing tokenizer:', err);
@@ -160,8 +160,9 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
     };
 
     const fixToken = (token: string) => {
-        token = token.replace(/Ġ/g, ' ');
+        token = token.replace("Ġ", ' ');
         token = token.replace("<0x0A>", '\\n');
+        token = token.replace("Ċ", '\\n');
         return token;
     }
 
@@ -211,26 +212,46 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
                     style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
                 >
                     <div className="flex flex-wrap pt-1">
-                        {tokenData.tokens.slice(0, 100).map((token, i) => {
+                        {tokenData.tokens.map((token, i) => {
                             const fixedText = fixToken(token.text);
-                            return (
-                                <div
-                                    key={`token-${i}`}
-                                    data-token-id={i}
-                                    className={`text-xs w-fit rounded text-zinc-300 whitespace-pre border border-transparent hover:bg-zinc-800 hover:border-zinc-700 select-none ${
-                                        highlightedTokens.includes(i) ? 'bg-zinc-800 border-zinc-700' : ''
-                                    }`}
-                                    style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-                                >
-                                    {fixedText}
-                                </div>
-                            );
+                            const isHighlighted = highlightedTokens.includes(i);
+                            const highlightStyle = 'bg-zinc-800 border-zinc-700';
+                            const key = `token-${i}`;
+                            const commonProps = {
+                                'data-token-id': i,
+                                style: { userSelect: 'none', WebkitUserSelect: 'none' } as React.CSSProperties,
+                            };
+
+                            if (fixedText === '\\n') {
+                                // Render a full-width div for newline tokens, displaying '\\n' and forcing a break
+                                return (
+                                    <div
+                                        key={key}
+                                        {...commonProps}
+                                        // Use w-full for line break, adjust styles to match other tokens
+                                        className={`text-xs w-full rounded text-zinc-300 whitespace-pre border hover:bg-zinc-800 hover:border-zinc-700 select-none ${
+                                            isHighlighted ? highlightStyle : 'border-transparent'
+                                        }`}
+                                        // Ensure flex-basis is 100% to force wrap
+                                        style={{ ...commonProps.style, flexBasis: '100%' }}
+                                    >
+                                        {fixedText}
+                                    </div>
+                                );
+                            } else {
+                                return (
+                                    <div
+                                        key={key}
+                                        {...commonProps}
+                                        className={`text-xs w-fit rounded text-zinc-300 whitespace-pre border hover:bg-zinc-800 hover:border-zinc-700 select-none ${
+                                            isHighlighted ? highlightStyle : 'border-transparent'
+                                        }`}
+                                    >
+                                        {fixedText}
+                                    </div>
+                                );
+                            }
                         })}
-                        {tokenData.tokens.length > 100 && (
-                            <div className="text-xs text-zinc-500 px-1.5 py-0.5 select-none" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
-                                + {tokenData.tokens.length - 100} more tokens
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

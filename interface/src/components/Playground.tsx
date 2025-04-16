@@ -17,7 +17,7 @@ import { Conversation } from "@/components/workbench/conversation.types";
 const createDefaultConversation = (type: "chat" | "base"): Conversation => ({
     id: `default-${Date.now()}-${Math.random().toString(36).substring(7)}`, // More unique ID
     type: type,
-    title: `New ${type === "chat" ? "Conversation" : "Prompt"}`,
+    title: `${type === "chat" ? "Conversation" : "Prompt"}`,
     systemMessage: "Describe desired model behavior (tone, tool usage, response style)",
     messages: [{ role: "user", content: "" }],
     prompt: "",
@@ -26,7 +26,7 @@ const createDefaultConversation = (type: "chat" | "base"): Conversation => ({
 });
 
 export function Playground() {
-    const [modelType, setModelType] = useState<"chat" | "base">("chat");
+    const [modelType, setModelType] = useState<"chat" | "base">("base");
     const [savedConversations, setSavedConversations] = useState<Conversation[]>([]);
     // State for the conversations currently active in the workbench
     const [activeConversations, setActiveConversations] = useState<Conversation[]>(() => [createDefaultConversation(modelType)]);
@@ -35,12 +35,9 @@ export function Playground() {
     const handleLoadConversation = (conversationToLoad: Conversation) => {
         // Check if the conversation (by ID) is already active
         if (activeConversations.some(conv => conv.id === conversationToLoad.id)) {
-            // Optional: If it's already active, maybe just ensure it's expanded
-            // setActiveConversations(prev => prev.map(conv =>
-            //     conv.id === conversationToLoad.id ? { ...conv, isExpanded: true } : conv
-            // ));
+
             console.log("Conversation already active:", conversationToLoad.id);
-            // Or simply do nothing if it's already loaded
+
             return;
         }
 
@@ -53,15 +50,6 @@ export function Playground() {
             isNew: undefined
         };
 
-        // Set the model type based on the *first* conversation's type,
-        // or the type of the one just loaded if it's the only one.
-        // This handles the case where the workbench was empty.
-        // A more complex UI might allow mixed types, but for now,
-        // let's assume the Select dropdown controls the type for *new* conversations.
-        // We don't necessarily need to change the global modelType when loading.
-        // setModelType(newActiveConversation.type); // Consider if this line is desired behavior
-
-        // Add the loaded conversation to the existing list
         setActiveConversations(prev => [...prev, newActiveConversation]);
     };
 
@@ -235,16 +223,7 @@ export function Playground() {
 
                         {/* Token analysis area */}
                         <div className="flex-1 bg-zinc-900 flex flex-col p-4 overflow-auto custom-scrollbar">
-                            {/* Token analysis UI will go here */}
                              <p className="text-zinc-400">Token analysis view (coming soon)</p>
-                             {/* Example: Display raw text for tokenization */}
-                             {/* <pre className="text-xs whitespace-pre-wrap mt-4">
-                                {activeConversations.map(conv =>
-                                    conv.type === 'chat'
-                                    ? [conv.systemMessage, ...conv.messages.map(m => `${m.role}: ${m.content}`)].join("\n\n")
-                                    : conv.prompt
-                                ).join("\n\n---\n\n")}
-                             </pre> */}
                         </div>
                     </div>
                 </div>
