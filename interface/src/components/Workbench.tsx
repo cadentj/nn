@@ -27,6 +27,10 @@ export function Workbench({
         onUpdateConversation(id, updates);
     };
 
+    const handleTokenSelection = (id: string, indices: number[]) => {
+        onUpdateConversation(id, { selectedTokenIndices: indices });
+    };
+
     return (
         <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {conversations.map((conv) => (
@@ -77,12 +81,14 @@ export function Workbench({
                                 messages={conv.messages}
                                 onMessagesChange={(msgs) => handleContentUpdate(conv.id, { messages: msgs })}
                                 isExpanded={conv.isExpanded}
+                                onTokenSelection={(indices) => handleTokenSelection(conv.id, indices)}
                             />
                         ) : (
                             <SinglePromptBuilder
                                 prompt={conv.prompt}
                                 onPromptChange={(p) => handleContentUpdate(conv.id, { prompt: p })}
                                 isExpanded={conv.isExpanded}
+                                onTokenSelection={(indices) => handleTokenSelection(conv.id, indices)}
                             />
                         )}
                     </div>

@@ -46,7 +46,8 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                         prompt: "",
                         isExpanded: true,
                         lastUpdated: new Date(),
-                        isNew: true
+                        isNew: true,
+                        selectedTokenIndices: [-1]
                     })}
                 >
                     <Plus size={16} className="mr-2" />

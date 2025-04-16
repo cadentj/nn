@@ -13,4 +13,5 @@ export interface Conversation {
     isExpanded: boolean;
     lastUpdated: Date;
     isNew?: boolean;
+    selectedTokenIndices: number[];
 }

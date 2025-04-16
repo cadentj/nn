@@ -12,6 +12,7 @@ interface ConversationBuilderProps {
     messages: Message[];
     onMessagesChange: (messages: Message[]) => void;
     isExpanded: boolean;
+    onTokenSelection?: (indices: number[]) => void;
 }
 
 export function ConversationBuilder({
@@ -20,6 +21,7 @@ export function ConversationBuilder({
     messages,
     onMessagesChange,
     isExpanded,
+    onTokenSelection,
 }: ConversationBuilderProps) {
     const addMessage = () => {
         const lastMessage = messages[messages.length - 1];
@@ -95,7 +97,7 @@ export function ConversationBuilder({
                     </div>
                 </div>
             ) : (
-                <TokenCounter text={tokenCounterContent} />
+                <TokenCounter text={tokenCounterContent} onTokenSelection={onTokenSelection} />
             )}
         </div>
     );

@@ -7,12 +7,14 @@ interface SinglePromptBuilderProps {
     prompt: string;
     onPromptChange: (prompt: string) => void;
     isExpanded: boolean;
+    onTokenSelection?: (indices: number[]) => void;
 }
 
 export function SinglePromptBuilder({
     prompt,
     onPromptChange,
     isExpanded,
+    onTokenSelection,
 }: SinglePromptBuilderProps) {
     return (
         <div className="flex flex-col h-full">
@@ -31,8 +33,7 @@ export function SinglePromptBuilder({
                     </div>
                 </div>
             ) : (
-                <TokenCounter text={!isExpanded ? prompt : null} />
-
+                <TokenCounter text={!isExpanded ? prompt : null} onTokenSelection={onTokenSelection} />
             )}
         </div>
     );

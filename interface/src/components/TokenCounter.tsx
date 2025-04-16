@@ -10,6 +10,7 @@ import { AutoTokenizer } from '@huggingface/transformers';
 interface TokenCounterProps {
     text: string | { role: string; content: string }[] | null;
     isLoading?: boolean;
+    onTokenSelection?: (indices: number[]) => void;
 }
 
 interface TokenData {
@@ -21,7 +22,7 @@ interface TokenData {
 let tokenizer: AutoTokenizer | null = null;
 let isTokenizerLoading = true;
 
-export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
+export function TokenCounter({ text, isLoading = false, onTokenSelection }: TokenCounterProps) {
     const [tokenData, setTokenData] = useState<TokenData | null>(null);
     const [isLocalLoading, setIsLocalLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -131,6 +132,9 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
 
     const handleMouseUp = () => {
         setIsSelecting(false);
+        if (onTokenSelection) {
+            onTokenSelection(highlightedTokens.length > 0 ? highlightedTokens : [-1]);
+        }
         setStartToken(null);
         setEndToken(null);
     };
@@ -168,7 +172,7 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
 
     const renderLoading = () => (
         <div className="flex items-center justify-center h-32">
-            <div className="animate-pulse text-zinc-400 dark:text-zinc-600">
+            <div className="animate-pulse ">
                 {isTokenizerLoading ? 'Loading tokenizer...' : 'Tokenizing...'}
             </div>
         </div>
@@ -239,11 +243,11 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
                 <Separator className="my-2" />
 
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-zinc-400">Token Count</span>
-                    <div className="text-sm text-zinc-300">
+                    <span className="text-xs ">Token Count</span>
+                    <div className="text-sm ">
                         {tokenData.count}
                         {highlightedTokens.length > 0 && (
-                            <span className="text-xs text-zinc-500 ml-1">
+                            <span className="text-xs  ml-1">
                                 ({highlightedTokens.length} selected)
                             </span>
                         )}
@@ -254,7 +258,7 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
     };
 
     return (
-        <div className="bg-zinc-900 p-4">
+        <div className=" p-4">
             {isLoading || isLocalLoading || isTokenizerLoading
                 ? renderLoading()
                 : error

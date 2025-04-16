@@ -24,7 +24,8 @@ const createDefaultConversation = (type: "chat" | "base"): Conversation => ({
     messages: [{ role: "user", content: "" }],
     prompt: "",
     isExpanded: true,
-    lastUpdated: new Date()
+    lastUpdated: new Date(),
+    selectedTokenIndices: [-1]
 });
 
 export function Playground() {
