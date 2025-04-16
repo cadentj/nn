@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Hash } from "lucide-react";
@@ -17,14 +17,25 @@ interface TokenData {
     tokens: { id: number, text: string }[];
 }
 
+interface Token {
+    id: number;
+    text: string;
+    isHighlighted: boolean;
+}
+
 // Use dynamic import for transformers.js to avoid build errors
-let tokenizer: AutoTokenizer | null = null;
+let tokenizer: any | null = null;
 let isTokenizerLoading = true;
 
 export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
     const [tokenData, setTokenData] = useState<TokenData | null>(null);
     const [isLocalLoading, setIsLocalLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [highlightedTokens, setHighlightedTokens] = useState<number[]>([]);
+    const [isSelecting, setIsSelecting] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [startToken, setStartToken] = useState<number | null>(null);
+    const [endToken, setEndToken] = useState<number | null>(null);
 
     // Load tokenizer once (when component mounts)
     useEffect(() => {
@@ -68,7 +79,10 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
 
                         setTokenData({
                             count: tokens.length,
-                            tokens: tokens
+                            tokens: tokens.map((token: string, index: number) => ({
+                                id: index,
+                                text: token
+                            }))
                         });
                     }
                 } else {
@@ -100,6 +114,47 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
         };
     }, [text]);
 
+    const handleMouseDown = (e: React.MouseEvent) => {
+        if (e.button !== 0) return; // Only handle left mouse button
+        setIsSelecting(true);
+        const tokenId = getTokenIdFromEvent(e);
+        if (tokenId !== null) {
+            setStartToken(tokenId);
+            setEndToken(tokenId);
+            setHighlightedTokens([tokenId]);
+        }
+    };
+
+    const handleMouseUp = () => {
+        setIsSelecting(false);
+        setStartToken(null);
+        setEndToken(null);
+    };
+
+    const getTokenIdFromEvent = (e: React.MouseEvent): number | null => {
+        const target = e.target as HTMLElement;
+        const tokenElement = target.closest('[data-token-id]');
+        if (tokenElement) {
+            return parseInt(tokenElement.getAttribute('data-token-id') || '0', 10);
+        }
+        return null;
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isSelecting || startToken === null) return;
+
+        const currentToken = getTokenIdFromEvent(e);
+        if (currentToken === null) return;
+
+        setEndToken(currentToken);
+
+        // Calculate the range of tokens to highlight
+        const start = Math.min(startToken, currentToken);
+        const end = Math.max(startToken, currentToken);
+        const newHighlightedTokens = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+        setHighlightedTokens(newHighlightedTokens);
+    };
+
     const renderLoading = () => (
         <div className="flex items-center justify-center h-32">
             <div className="animate-pulse text-zinc-400 dark:text-zinc-600">
@@ -124,23 +179,42 @@ export function TokenCounter({ text, isLoading = false }: TokenCounterProps) {
                         <Hash size={16} className="text-zinc-400" />
                         <span className="text-sm font-medium">Token Count</span>
                     </div>
-                    <div className="text-lg font-bold">{tokenData.count}</div>
+                    <div className="text-lg font-bold">
+                        {tokenData.count}
+                        {highlightedTokens.length > 0 && (
+                            <span className="text-sm text-zinc-400 ml-2">
+                                ({highlightedTokens.length} selected)
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <Separator className="my-2" />
 
-                <div className="max-h-40 overflow-y-auto custom-scrollbar">
+                <div 
+                    className="max-h-40 overflow-y-auto custom-scrollbar select-none"
+                    ref={containerRef}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseUp}
+                    style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                >
                     <div className="flex flex-wrap pt-1">
                         {tokenData.tokens.slice(0, 100).map((token, i) => (
                             <div
                                 key={`token-${i}`}
-                                className="text-xs w-fit rounded text-zinc-300 whitespace-pre border border-transparent hover:bg-zinc-800 hover:border-zinc-700"
+                                data-token-id={i}
+                                className={`text-xs w-fit rounded text-zinc-300 whitespace-pre border border-transparent hover:bg-zinc-800 hover:border-zinc-700 select-none ${
+                                    highlightedTokens.includes(i) ? 'bg-zinc-800 border-zinc-700' : ''
+                                }`}
+                                style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
                             >
-                                {token.replace(/Ġ/g, ' ')}
+                                {token.text.replace(/Ġ/g, ' ')}
                             </div>
                         ))}
                         {tokenData.tokens.length > 100 && (
-                            <div className="text-xs text-zinc-500 px-1.5 py-0.5">
+                            <div className="text-xs text-zinc-500 px-1.5 py-0.5 select-none" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
                                 + {tokenData.tokens.length - 100} more tokens
                             </div>
                         )}

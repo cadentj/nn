@@ -21,6 +21,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { TokenCounter } from "@/components/TokenCounter";
 import { TokenVisualizer } from "@/components/TokenVisualizer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ConversationBuilder } from "@/components/ConversationBuilder";
+import { SinglePromptBuilder } from "@/components/SinglePromptBuilder";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Workbench } from "@/components/Workbench";
+import { ChatHistory } from "@/components/ChatHistory";
 
 interface Message {
   role: "user" | "assistant";
@@ -32,21 +37,36 @@ interface TokenData {
   tokens: {id: number, text: string}[];
 }
 
+interface Conversation {
+  id: string;
+  type: "chat" | "base";
+  title: string;
+  systemMessage: string;
+  messages: Message[];
+  prompt: string;
+  isExpanded: boolean;
+  lastUpdated: Date;
+  isNew?: boolean;
+}
+
 export function Playground() {
   const [systemMessage, setSystemMessage] = useState("Describe desired model behavior (tone, tool usage, response style)");
   const [messages, setMessages] = useState<Message[]>([
     { role: "user", content: "Example prompt to analyze token distribution patterns" },
     { role: "assistant", content: "" }
   ]);
+  const [prompt, setPrompt] = useState("");
+  const [modelType, setModelType] = useState<"chat" | "base">("chat");
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [isTokenizing, setIsTokenizing] = useState(false);
   const [activeTab, setActiveTab] = useState("token-stats");
+  const [savedConversations, setSavedConversations] = useState<Conversation[]>([]);
+  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
 
   // Combined text for tokenization
-  const allText = [
-    systemMessage,
-    ...messages.map(m => m.content)
-  ].join("\n\n");
+  const allText = modelType === "chat" 
+    ? [systemMessage, ...messages.map(m => m.content)].join("\n\n")
+    : prompt;
 
   const addMessage = () => {
     setMessages([...messages, { role: "user", content: "" }]);
@@ -62,6 +82,51 @@ export function Playground() {
     const updatedMessages = [...messages];
     updatedMessages.splice(index, 1);
     setMessages(updatedMessages);
+  };
+
+  const handleLoadConversation = (conversation: Conversation) => {
+    // Create a new conversation with a fresh ID
+    const newConversation = {
+      ...conversation,
+      id: Date.now().toString(),
+      isExpanded: true,
+      lastUpdated: new Date()
+    };
+    
+    // Update the model type based on the loaded conversation
+    setModelType(conversation.type);
+    
+    // If it's a chat conversation, update the system message and messages
+    if (conversation.type === "chat") {
+      setSystemMessage(conversation.systemMessage);
+      setMessages(conversation.messages);
+    } else {
+      // If it's a base conversation, update the prompt
+      setPrompt(conversation.prompt);
+    }
+
+    // Set the current conversation
+    setCurrentConversation(newConversation);
+  };
+
+  const handleSaveConversation = (conversation: Conversation) => {
+    const savedConversation = {
+      ...conversation,
+      id: `saved-${Date.now()}`,
+      lastUpdated: new Date()
+    };
+    setSavedConversations([...savedConversations, savedConversation]);
+  };
+
+  const handleDeleteConversation = (id: string) => {
+    // Remove from saved conversations list
+    setSavedConversations(savedConversations.filter(conv => conv.id !== id));
+    
+    // If we deleted the currently active conversation, set currentConversation to null
+    // This forces the Workbench to reset to its default state
+    if (currentConversation && currentConversation.id === id) {
+      setCurrentConversation(null);
+    }
   };
 
   return (
@@ -94,21 +159,12 @@ export function Playground() {
 
       <div className="flex flex-1 min-h-0">
         {/* Left sidebar */}
-        <div className="w-48 border-r border-zinc-800 bg-zinc-950">
-          <div className="p-2">
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <MessagesSquare size={16} className="mr-2" />
-              Prompts
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <Code size={16} className="mr-2" />
-              Playground
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <LayoutDashboard size={16} className="mr-2" />
-              Dashboard
-            </Button>
-          </div>
+        <div className="w-64 border-r border-zinc-800 bg-zinc-950">
+          <ChatHistory
+            savedConversations={savedConversations}
+            onLoadConversation={handleLoadConversation}
+            currentModelType={modelType}
+          />
         </div>
 
         {/* Main content */}
@@ -134,82 +190,29 @@ export function Playground() {
 
           <div className="flex flex-1 min-h-0">
             {/* Prompt configuration */}
-            <div className="w-[40%] border-r border-zinc-800 overflow-y-auto custom-scrollbar">
-              <div className="flex flex-col h-full">
-                <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-300">
-                      Your prompts
-                    </Button>
-                    <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-300">
-                      Save
-                    </Button>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-sm text-zinc-400">Model</label>
-                      <div className="flex items-center justify-between p-2 bg-zinc-900 rounded-md">
-                        <div>gpt-4.1</div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6">
-                          <Settings size={14} />
-                        </Button>
-                      </div>
-                      <div className="mt-1 px-2 text-xs text-zinc-500">
-                        text.format: text  temp: 1.00  tokens: 2048  top_p: 1.00  store: true
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm text-zinc-400">System message</label>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-zinc-400">
-                          <Plus size={14} />
-                        </Button>
-                      </div>
-                      <Textarea
-                        value={systemMessage}
-                        onChange={(e) => setSystemMessage(e.target.value)}
-                        className="mt-1 bg-zinc-900 border-zinc-700 text-white h-24 resize-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-zinc-400">Additional messages</label>
-                      <div className="space-y-2 mt-2">
-                        {messages.map((message, index) => (
-                          <div key={`message-${message.role}-${index}`} className="border border-zinc-800 rounded-md overflow-hidden">
-                            <div className="bg-zinc-900 px-3 py-1.5 flex items-center justify-between">
-                              <span className="text-sm font-medium">{message.role === "user" ? "User" : "Assistant"}</span>
-                              {message.role === "user" && (
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-400" onClick={() => deleteMessage(index)}>
-                                  <Trash size={14} />
-                                </Button>
-                              )}
-                            </div>
-                            <Textarea
-                              value={message.content}
-                              onChange={(e) => handleMessageChange(index, e.target.value)}
-                              placeholder={message.role === "user" ? "Empty user message" : "Empty assistant message"}
-                              className="bg-zinc-900 border-0 text-white h-20 resize-none"
-                            />
-                          </div>
-                        ))}
-
-                        <Button variant="outline" size="sm" className="w-full mt-2 border-zinc-700 text-zinc-300" onClick={addMessage}>
-                          <Plus size={14} className="mr-1" />
-                          Add message
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Token counter fixed at the bottom */}
-                <div className="p-4 border-t border-zinc-800">
-                  <TokenCounter text={allText} />
+            <div className="w-[35%] border-r border-zinc-800 overflow-y-auto custom-scrollbar">
+              <div className="p-4 border-b border-zinc-800">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-sm font-medium">Model</h2>
+                  <Select value={modelType} onValueChange={(value: "chat" | "base") => setModelType(value)}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="chat">llama-chat</SelectItem>
+                      <SelectItem value="base">llama</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
+
+              <Workbench
+                modelType={modelType}
+                onSaveConversation={handleSaveConversation}
+                onLoadConversation={handleLoadConversation}
+                onDeleteConversation={handleDeleteConversation}
+                initialConversation={currentConversation || undefined}
+              />
             </div>
 
             {/* Token analysis area */}
