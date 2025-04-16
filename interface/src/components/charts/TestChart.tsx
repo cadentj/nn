@@ -3,6 +3,7 @@
 import { TrendingUp } from "lucide-react"
 import { CartesianGrid, Line, LineChart, XAxis, Legend, YAxis, ResponsiveContainer } from "recharts"
 import { useMemo } from "react";
+import { BorderBeam } from "@/components/magicui/border-beam";
 
 import {
   Card,
@@ -24,6 +25,7 @@ interface TestChartProps {
   title: string;
   description: string;
   data: LogitLensResponse | null;
+  isLoading: boolean;
 }
 
 // Helper to assign colors dynamically
@@ -35,7 +37,7 @@ const defaultColors = [
   "hsl(var(--chart-5))",
 ];
 
-export function TestChart({title, description, data}: TestChartProps) {
+export function TestChart({title, description, data, isLoading}: TestChartProps) {
 
   const { chartData, chartConfig } = useMemo(() => {
     if (!data || !data.model_results || data.model_results.length === 0) {
@@ -102,6 +104,27 @@ export function TestChart({title, description, data}: TestChartProps) {
   }, [data]);
 
 
+  if (isLoading) {
+      return (
+          <Card className="relative">
+              <CardHeader>
+                  <CardTitle>{title}</CardTitle>
+                  <CardDescription>{description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <div className="flex items-center justify-center h-60">
+                      <p className="text-muted-foreground">Running analysis...</p>
+                  </div>
+              </CardContent>
+              <BorderBeam
+                  duration={4}
+                  size={500}
+                  className="from-transparent bg-primary to-transparent"
+              />
+          </Card>
+      );
+  }
+
   if (!data || chartData.length === 0) {
       return (
           <Card>
@@ -117,7 +140,6 @@ export function TestChart({title, description, data}: TestChartProps) {
           </Card>
       );
   }
-
 
   return (
     <Card>

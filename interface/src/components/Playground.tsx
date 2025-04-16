@@ -15,6 +15,7 @@ import { Conversation } from "@/components/workbench/conversation.types";
 import { TestChart } from "@/components/charts/TestChart";
 import { ModelSelector } from "./ModelSelector";
 import { LogitLensResponse } from "@/components/workbench/conversation.types";
+import { ModeToggle } from "@/components/ModeToggle";
 
 // Helper function to create default conversations (consistent IDs)
 const createDefaultConversation = (type: "chat" | "base", model: string): Conversation => ({
@@ -38,8 +39,11 @@ export function Playground() {
     const [activeConversations, setActiveConversations] = useState<Conversation[]>(() => [createDefaultConversation(modelType, modelName)]);
 
     const [chartData, setChartData] = useState<LogitLensResponse | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleRun = async () => {
+        setIsLoading(true);
+        setChartData(null);
         try {
             const response = await fetch('http://localhost:8000/api/lens', {
                 method: 'POST',
@@ -52,6 +56,9 @@ export function Playground() {
             setChartData(data);
         } catch (error) {
             console.error('Error sending request:', error);
+            setChartData(null);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -130,31 +137,23 @@ export function Playground() {
     };
 
     return (
-        <div className="flex flex-col h-screen text-white">
+        <div className="flex flex-col h-screen">
             <header className="border-b  px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                            <span className="text-xs text-white">AI</span>
-                        </div>
-                        <div className="text-sm font-medium">AI Playground</div>
-                    </div>
+                    <img
+                        src="/images/NDIF.png"
+                        alt="NDIF Logo"
+                        className="h-8"
+                    />
                     <div className="h-4 border-l" />
-                    <div className="text-sm font-medium">Token Analysis</div>
+                    <div className="text-sm font-medium">Logit Lens</div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <nav className="flex">
-                        <Button variant="ghost" size="sm" className="btn-high-contrast">Playground</Button>
-                        <Button variant="ghost" size="sm">Dashboard</Button>
-                        <Button variant="ghost" size="sm">Docs</Button>
-                        <Button variant="ghost" size="sm">API reference</Button>
-                    </nav>
-
-                    <div className="h-8 w-8 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-white">U</span>
-                    </div>
-                </div>
+                <nav className="flex">
+                    <Button variant="ghost" size="sm">NNsight</Button>
+                    <Button variant="ghost" size="sm">API reference</Button>
+                    <ModeToggle />
+                </nav>
             </header>
 
             <div className="flex flex-1 min-h-0">
@@ -189,7 +188,7 @@ export function Playground() {
                                 <History size={16} />
                                 History
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={handleRun}>
+                            <Button size="sm" onClick={handleRun}>
                                 <Play size={16} />
                                 Run
                             </Button>
@@ -218,8 +217,13 @@ export function Playground() {
                         </div>
 
                         {/* Token analysis area */}
-                        <div className="flex-1 flex bg-zinc-900 flex-col p-4 overflow-auto custom-scrollbar">
-                            <TestChart title="Token Analysis" description="Probability of the target token per layer." data={chartData} />
+                        <div className="flex-1 flex flex-col p-4 overflow-auto custom-scrollbar bg-muted">
+                            <TestChart
+                                title="Token Analysis"
+                                description="Probability of the target token per layer."
+                                data={chartData}
+                                isLoading={isLoading}
+                            />
                         </div>
                     </div>
                 </div>

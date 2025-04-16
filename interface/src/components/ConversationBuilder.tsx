@@ -58,23 +58,23 @@ export function ConversationBuilder({
                 <div className="flex-1 overflow-y-auto p-4 space-y-6">
                     <div className="space-y-6">
                         {/* <div>
-                            <label className="text-sm text-zinc-400">System message</label>
+                            <label className="text-sm">System message</label>
                             <Textarea
                                 value={systemMessage}
                                 onChange={(e) => onSystemMessageChange(e.target.value)}
-                                className="mt-1 bg-zinc-900 border-zinc-700 text-white h-24 resize-none"
+                                className="mt-1 h-24 resize-none"
                             />
                         </div> */}
 
                         <div>
-                            <label className="text-sm text-zinc-400">Messages</label>
+                            <label className="text-sm ">Messages</label>
                             <div className="space-y-2 mt-2">
                                 {messages.map((message, index) => (
-                                    <div key={`message-${message.role}-${index}`} className="border border-zinc-800 rounded-md overflow-hidden">
-                                        <div className="bg-zinc-900 px-3 py-1.5 flex items-center justify-between">
+                                    <div key={`message-${message.role}-${index}`} className="border  rounded-md overflow-hidden">
+                                        <div className="px-3 py-1.5 flex items-center justify-between">
                                             <span className="text-sm font-medium">{message.role === "user" ? "User" : "Assistant"}</span>
                                             {message.role === "user" && (
-                                                <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-400" onClick={() => deleteMessage(index)}>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteMessage(index)}>
                                                     <Trash size={14} />
                                                 </Button>
                                             )}
@@ -83,12 +83,12 @@ export function ConversationBuilder({
                                             value={message.content}
                                             onChange={(e) => handleMessageChange(index, e.target.value)}
                                             placeholder={message.role === "user" ? "Empty user message" : "Empty assistant message"}
-                                            className="bg-zinc-900 border-0 text-white h-20 resize-none"
+                                            className=" border-0 h-20 resize-none"
                                         />
                                     </div>
                                 ))}
 
-                                <Button size="sm" className="w-full mt-2" onClick={addMessage}>
+                                <Button size="sm" variant="secondary" className="w-full mt-2" onClick={addMessage}>
                                     <Plus size={14} className="mr-1" />
                                     Add message
                                 </Button>

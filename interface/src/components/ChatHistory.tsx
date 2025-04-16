@@ -17,7 +17,7 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
 
     return (
         <div className="h-full flex flex-col">
-            <div className="p-4 border-b border-zinc-800">
+            <div className="p-4 border-b ">
                 <div className="flex items-center gap-2 mb-4">
                     <Button
                         variant={activeTab === "saved" ? "default" : "ghost"}
@@ -63,21 +63,21 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                         {savedConversations.map((conv) => (
                             <div
                                 key={conv.id}
-                                className="p-3 border border-zinc-800 rounded-md hover:bg-zinc-900 cursor-pointer"
+                                className="p-3 border cursor-pointer"
                                 onClick={() => onLoadConversation(conv)}
                             >
                                 <div className="flex items-center gap-2">
                                     {conv.type === "chat" ? (
-                                        <MessageSquare size={16} className="text-zinc-500" />
+                                        <MessageSquare size={16} />
                                     ) : (
-                                        <FileText size={16} className="text-zinc-500" />
+                                        <FileText size={16}  />
                                     )}
                                     <div className="text-sm font-medium">{conv.title}</div>
                                 </div>
-                                <div className="text-xs text-zinc-500 mt-1">
+                                <div className="text-xs mt-1">
                                     {conv.type === "chat" ? "Chat" : "Prompt"} • {conv.messages.length} messages
                                 </div>
-                                <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
+                                <div className="text-xs mt-1 flex items-center gap-1">
                                     <Clock size={12} />
                                     {conv.lastUpdated.toLocaleDateString()}
                                 </div>
@@ -85,7 +85,7 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                         ))}
                     </div>
                 ) : (
-                    <div className="text-sm text-zinc-500 text-center py-8">
+                    <div className="text-sm  text-center py-8">
                         Recent conversations will appear here
                     </div>
                 )}

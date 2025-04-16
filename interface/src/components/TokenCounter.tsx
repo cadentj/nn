@@ -202,7 +202,8 @@ export function TokenCounter({ text, isLoading = false, onTokenSelection }: Toke
                         {tokenData.tokens.map((token, i) => {
                             const fixedText = fixToken(token.text);
                             const isHighlighted = highlightedTokens.includes(i);
-                            const highlightStyle = 'bg-zinc-800 border-zinc-700';
+                            const highlightStyle = 'bg-primary/50 border-primary/50';
+                            const hoverStyle = 'hover:bg-primary/50 hover:border-primary/50';
                             const key = `token-${i}`;
                             const commonProps = {
                                 'data-token-id': i,
@@ -216,8 +217,8 @@ export function TokenCounter({ text, isLoading = false, onTokenSelection }: Toke
                                         key={key}
                                         {...commonProps}
                                         // Use w-full for line break, adjust styles to match other tokens
-                                        className={`text-xs w-full rounded text-zinc-300 whitespace-pre border hover:bg-zinc-800 hover:border-zinc-700 select-none ${isHighlighted ? highlightStyle : 'border-transparent'
-                                            }`}
+                                        className={`text-xs w-full rounded whitespace-pre border select-none ${isHighlighted ? highlightStyle : 'border-transparent'
+                                            } ${hoverStyle}`}
                                         // Ensure flex-basis is 100% to force wrap
                                         style={{ ...commonProps.style, flexBasis: '100%' }}
                                     >
@@ -229,8 +230,8 @@ export function TokenCounter({ text, isLoading = false, onTokenSelection }: Toke
                                     <div
                                         key={key}
                                         {...commonProps}
-                                        className={`text-xs w-fit rounded text-zinc-300 whitespace-pre border hover:bg-zinc-800 hover:border-zinc-700 select-none ${isHighlighted ? highlightStyle : 'border-transparent'
-                                            }`}
+                                        className={`text-xs w-fit rounded whitespace-pre border select-none ${isHighlighted ? highlightStyle : 'border-transparent'
+                                            } ${hoverStyle}`}
                                     >
                                         {fixedText}
                                     </div>

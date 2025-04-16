@@ -1,10 +1,12 @@
 "use client";
 
-import { Plus, ChevronDown, ChevronRight, Trash, Save } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, Trash, Save, Type, Sparkle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConversationBuilder } from "@/components/ConversationBuilder";
 import { SinglePromptBuilder } from "@/components/SinglePromptBuilder";
 import { Conversation } from "@/components/workbench/conversation.types";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 interface WorkbenchProps {
     conversations: Conversation[];
@@ -34,23 +36,22 @@ export function Workbench({
     return (
         <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {conversations.map((conv) => (
-                <div key={conv.id} className="border rounded-md overflow-hidden">
+                <Card key={conv.id} className="border overflow-hidden">
                     <div className=" px-4 py-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Button
+                            {/* <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6"
                                 onClick={() => toggleConversation(conv.id, conv.isExpanded)}
                             >
                                 {conv.isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                            </Button>
+                            </Button> */}
                             <div className="flex flex-col">
-                                <input
-                                    type="text"
+                                <Input
                                     value={conv.title}
                                     onChange={(e) => handleContentUpdate(conv.id, { title: e.target.value })}
-                                    className="bg-transparent text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 py-0.5"
+                                    className="border-none shadow-none px-1 py-0 font-bold"
                                 />
                                 <span className="text-xs text-gray-500 px-1">{conv.model}</span>
                             </div>
@@ -69,6 +70,12 @@ export function Workbench({
                                 onClick={() => onDeleteConversation(conv.id)}
                             >
                                 <Trash size={16}/>
+                            </Button>
+                            <Button
+                                size="icon"
+                                onClick={() => toggleConversation(conv.id, conv.isExpanded)}
+                            >
+                                <Sparkle size={16}/>
                             </Button>
                         </div>
                     </div>
@@ -94,7 +101,7 @@ export function Workbench({
                         )}
                     </div>
                     {/* )} */}
-                </div>
+                </Card>
             ))}
             {conversations.length === 0 && (
                 <p className="text-center py-4">No active conversations. Click 'New' to start.</p>
