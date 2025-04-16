@@ -53,7 +53,7 @@ export function Workbench({
                                     onChange={(e) => handleContentUpdate(conv.id, { title: e.target.value })}
                                     className="border-none shadow-none px-1 py-0 font-bold"
                                 />
-                                <span className="text-xs text-gray-500 px-1">{conv.model}</span>
+                                <span className="text-xs px-1">{conv.model}</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">

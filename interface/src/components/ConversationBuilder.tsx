@@ -44,7 +44,7 @@ export function ConversationBuilder({
 
     // Chat object array for message data
     const chat = [
-        { role: "system", content: systemMessage },
+        ...(systemMessage ? [{ role: "system", content: systemMessage }] : []),
         ...messages
     ];
 
@@ -83,12 +83,12 @@ export function ConversationBuilder({
                                             value={message.content}
                                             onChange={(e) => handleMessageChange(index, e.target.value)}
                                             placeholder={message.role === "user" ? "Empty user message" : "Empty assistant message"}
-                                            className=" border-0 h-20 resize-none"
+                                            className=" border-0 h-20 resize-none focus-visible:ring-0"
                                         />
                                     </div>
                                 ))}
 
-                                <Button size="sm" variant="secondary" className="w-full mt-2" onClick={addMessage}>
+                                <Button size="sm" variant="outline" className="w-full mt-2" onClick={addMessage}>
                                     <Plus size={14} className="mr-1" />
                                     Add message
                                 </Button>

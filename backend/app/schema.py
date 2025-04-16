@@ -22,6 +22,10 @@ class Conversation(BaseModel):
 class LensRequest(BaseModel):
     conversations: List[Conversation]
 
+class TokenizeRequest(BaseModel):
+    text: str
+    model: str
+
 # RESPONSE SCHEMAS 
 
 class LayerResults(BaseModel):

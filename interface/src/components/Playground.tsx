@@ -145,11 +145,11 @@ export function Playground() {
                         alt="NDIF Logo"
                         className="h-8"
                     />
-                    <div className="h-4 border-l" />
-                    <div className="text-sm font-medium">Logit Lens</div>
+                    {/* <div className="h-4 border-l" /> */}
+                    {/* <div className="text-sm font-medium">Logit Lens</div> */}
                 </div>
 
-                <nav className="flex">
+                <nav className="flex gap-2 items-center">
                     <Button variant="ghost" size="sm">NNsight</Button>
                     <Button variant="ghost" size="sm">API reference</Button>
                     <ModeToggle />
@@ -173,7 +173,7 @@ export function Playground() {
                     {/* Top bar within main content */}
                     <div className="p-4 border-b flex items-center justify-between">
                         {/* ... existing title and buttons ... */}
-                        <h1 className="text-lg font-medium">Token Analyzer</h1>
+                        <h1 className="text-lg font-medium">Logit Lens</h1>
 
                         <div className="flex items-center gap-2">
                             <Button variant="ghost" size="sm">
@@ -199,7 +199,7 @@ export function Playground() {
                         {/* Prompt configuration / Workbench area */}
                         <div className="w-[35%] border-r flex flex-col"> {/* Use flex-col */}
                             <div className="p-4 border-b">
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center justify-between">
                                     <h2 className="text-sm font-medium">Model</h2>
                                     <ModelSelector modelName={modelName} setModelName={setModelName} setModelType={setModelType} />
                                 </div>

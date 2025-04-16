@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import lens
+from .api import lens, tokenize
 
 
 app = FastAPI()
@@ -17,6 +17,7 @@ app.add_middleware(
 )
 
 app.include_router(lens, prefix="/api")
+app.include_router(tokenize, prefix="/api")
 
 @app.get("/")
 async def root():

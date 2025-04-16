@@ -190,7 +190,7 @@ export function TokenCounter({ text, isLoading = false, onTokenSelection }: Toke
         return (
             <>
                 <div
-                    className="max-h-40 overflow-y-auto custom-scrollbar select-none"
+                    className="max-h-80 overflow-y-auto custom-scrollbar select-none"
                     ref={containerRef}
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}

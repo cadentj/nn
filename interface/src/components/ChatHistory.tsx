@@ -20,14 +20,14 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
             <div className="p-4 border-b ">
                 <div className="flex items-center gap-2 mb-4">
                     <Button
-                        variant={activeTab === "saved" ? "default" : "ghost"}
+                        variant={activeTab === "saved" ? "secondary" : "ghost"}
                         size="sm"
                         onClick={() => setActiveTab("saved")}
                     >
                         Saved
                     </Button>
                     <Button
-                        variant={activeTab === "recent" ? "default" : "ghost"}
+                        variant={activeTab === "recent" ? "secondary" : "ghost"}
                         size="sm"
                         onClick={() => setActiveTab("recent")}
                     >
@@ -43,7 +43,7 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                         type: currentModelType,
                         model: currentModel,
                         title: `${currentModelType === "chat" ? "Conversation" : "Prompt"}`,
-                        systemMessage: "Describe desired model behavior (tone, tool usage, response style)",
+                        systemMessage: "",
                         messages: [{ role: "user", content: "" }],
                         prompt: "",
                         isExpanded: true,

@@ -12,11 +12,12 @@ def _logit_lens(model, model_tasks):
     def decode(x):
         return model.lm_head(model.model.ln_f(x))[:,]
 
-    results = []
+    all_results = []
     with model.trace(remote=True) as tracer:
         for task in model_tasks:
             # Get user queried indices
             idxs = task["selected_token_indices"]
+            results = []
 
             with tracer.invoke(task["prompt"]):
                 for layer_idx, layer in enumerate(model.model.layers):
@@ -40,8 +41,10 @@ def _logit_lens(model, model_tasks):
                         "pred_probs": pred_probs.save(),
                         "preds": preds.save(),
                     })
+                
+            all_results.append(results)
 
-    return results
+    return all_results
 
 def _process_results(model, results):
     processed_results = []
@@ -49,7 +52,11 @@ def _process_results(model, results):
         # Cast to Python primatives and get Proxy values
         preds = layer_results["preds"].value
         pred_probs = layer_results["pred_probs"].tolist()
-        
+
+        # If only a single token is selected, pred_probs is a float
+        if not isinstance(pred_probs, list):
+            pred_probs = [pred_probs]
+
         # Get string for each token id prediction
         str_toks = model.tokenizer.batch_decode(preds)
 
@@ -77,10 +84,15 @@ def logit_lens(request: LensRequest):
     for model_name, model_tasks in tasks.items():
         model = state.get_model(model_name)
         results = _logit_lens(model, model_tasks)
-        all_results.append({
-            "model_name": model_name,
-            "layer_results": _process_results(model, results),
-        })
+
+        for instance_idx, instance_results in enumerate(results):
+            processed_results = _process_results(model, instance_results)
+            all_results.append({
+                "model_name": f"{model_name} | {instance_idx}",
+                "layer_results": processed_results,
+            })
+
+    print(all_results)
 
     return LensResponse(model_results=all_results)
 
