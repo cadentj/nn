@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Workbench } from "@/components/Workbench";
 import { ChatHistory } from "@/components/ChatHistory";
 import { Conversation } from "@/components/workbench/conversation.types";
+import { TestChart } from "@/components/TestChart";
 
 // Helper function to create default conversations (consistent IDs)
 const createDefaultConversation = (type: "chat" | "base"): Conversation => ({
@@ -223,7 +224,8 @@ export function Playground() {
 
                         {/* Token analysis area */}
                         <div className="flex-1 bg-zinc-900 flex flex-col p-4 overflow-auto custom-scrollbar">
-                             <p className="text-zinc-400">Token analysis view (coming soon)</p>
+                             {/* <p className="text-zinc-400">Token analysis view (coming soon)</p> */}
+                             <TestChart />
                         </div>
                     </div>
                 </div>
