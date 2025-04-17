@@ -6,6 +6,7 @@ import {
     Play,
     Plus,
     BarChart,
+    LayoutGrid,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Workbench } from "@/components/Workbench";
@@ -15,9 +16,22 @@ import { TestChart } from "@/components/charts/TestChart";
 import { ModelSelector } from "./ModelSelector";
 import { LogitLensResponse } from "@/components/workbench/conversation.types";
 import { ModeToggle } from "@/components/ModeToggle";
-import { Toolbar } from "@/components/Toolbar";
-import { Toggle } from "@/components/ui/toggle";
 import { modes } from "@/components/workbench/modes";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+
+type Layout = "1x1" | "1x2" | "2x2";
 
 // Helper function to create default conversations (consistent IDs)
 const createDefaultConversation = (type: "chat" | "base", model: string): Conversation => ({
@@ -35,14 +49,57 @@ export function Playground() {
     const [modelType, setModelType] = useState<"chat" | "base">("base");
     const [modelName, setModelName] = useState<string>("EleutherAI/gpt-j-6b");
     const [savedConversations, setSavedConversations] = useState<Conversation[]>([]);
-    // State for the conversations currently active in the workbench
     const [activeConversations, setActiveConversations] = useState<Conversation[]>(() => [createDefaultConversation(modelType, modelName)]);
 
     const [chartData, setChartData] = useState<LogitLensResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const [selectedModes, setSelectedModes] = useState<number[]>([0])
-    const [isOpen, setIsOpen] = useState<boolean>(true)
+    const [selectedModes, setSelectedModes] = useState<number[]>([])
+    const [isSelectingChart, setIsSelectingChart] = useState<boolean>(false)
+    const [layout, setLayout] = useState<Layout>("1x1")
+    const [selectedPosition, setSelectedPosition] = useState<number | null>(null)
+
+    const getLayoutGrid = () => {
+        switch (layout) {
+            case "1x1":
+                return "grid-cols-1";
+            case "1x2":
+                return "grid-cols-2";
+            case "2x2":
+                return "grid-cols-2 grid-rows-2";
+            default:
+                return "grid-cols-1";
+        }
+    }
+
+    const getBoxCount = () => {
+        switch (layout) {
+            case "1x1":
+                return 1;
+            case "1x2":
+                return 2;
+            case "2x2":
+                return 4;
+            default:
+                return 1;
+        }
+    }
+
+    const handleAddChart = (modeIndex: number) => {
+        if (selectedPosition === null) return;
+        
+        setSelectedModes(prev => {
+            const newModes = [...prev];
+            newModes[selectedPosition] = modeIndex;
+            return newModes;
+        });
+        setSelectedPosition(null);
+        setIsSelectingChart(false);
+    }
+
+    const isChartSelected = (modeIndex: number) => {
+        return selectedModes.includes(modeIndex);
+    }
 
     const handleRun = async () => {
         setIsLoading(true);
@@ -178,10 +235,6 @@ export function Playground() {
                                 <Code size={16} />
                                 Code
                             </Button>
-                            <Toggle variant="ghost" size="sm" pressed={isOpen} onClick={() => setIsOpen(!isOpen)} className="mr-2">
-                                <BarChart size={16} />
-                                {isOpen ? "Hide" : "Show"} Options
-                            </Toggle>
                             <Button size="sm" onClick={handleRun}>
                                 <Play size={16} />
                                 Run
@@ -229,31 +282,100 @@ export function Playground() {
                             />
                         </div>
 
-                        {/* Container for charts and toolbar, relative positioning needed for absolute toolbar */}
+                        {/* Container for charts */}
                         <div className="flex-1 flex flex-col overflow-hidden custom-scrollbar bg-muted relative">
                             {/* Padded container for charts only */}
                             <div className="flex-1 overflow-auto p-4">
-                                <div className={`grid gap-4 ${
-                                    selectedModes.length === 1 ? 'grid-cols-1 items-center' :
-                                    selectedModes.length === 2 ? 'grid-cols-2 items-center' :
-                                    selectedModes.length >= 3 ? 'grid-cols-2' : ''
-                                }`}>
-                                    {selectedModes.map((mode) => (
-                                        <TestChart
-                                            key={mode}
-                                            title={modes[mode].name}
-                                            description={modes[mode].description}
-                                            data={chartData}
-                                            isLoading={isLoading}
-                                        />
+                                <div className={`grid ${getLayoutGrid()} gap-4 h-full`}>
+                                    {Array.from({ length: getBoxCount() }).map((_, index) => (
+                                        <div key={index} className="h-full">
+                                            {selectedModes[index] !== undefined ? (
+                                                <TestChart
+                                                    title={modes[selectedModes[index]].name}
+                                                    description={modes[selectedModes[index]].description}
+                                                    data={chartData}
+                                                    isLoading={isLoading}
+                                                />
+                                            ) : (
+                                                <div 
+                                                    className="flex flex-col items-center justify-center h-full border-2 border-dashed rounded-lg p-8 cursor-pointer hover:bg-muted/50 transition-colors"
+                                                    onClick={() => {
+                                                        setSelectedPosition(index);
+                                                        setIsSelectingChart(true);
+                                                    }}
+                                                >
+                                                    <Plus className="h-12 w-12 text-muted-foreground mb-4" />
+                                                    <p className="text-lg font-medium text-muted-foreground">Add a chart</p>
+                                                    <p className="text-sm text-muted-foreground">Click to select visualization</p>
+                                                </div>
+                                            )}
+                                        </div>
                                     ))}
                                 </div>
-                            </div> {/* End padded container for charts */}
-                            <Toolbar selectedModes={selectedModes} setSelectedModes={setSelectedModes} isOpen={isOpen} />
+                            </div>
+
+                            {/* Layout selector */}
+                            <div className="absolute bottom-4 right-4">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm" className="gap-2">
+                                            <LayoutGrid className="h-4 w-4" />
+                                            Layout
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <DropdownMenuItem onClick={() => setLayout("1x1")}>
+                                            1x1
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setLayout("1x2")}>
+                                            1x2
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setLayout("2x2")}>
+                                            2x2
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Chart selection overlay */}
+            {isSelectingChart && (
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-background border rounded-lg p-6 max-w-2xl w-full mx-4">
+                        <h2 className="text-lg font-medium mb-4">Select Visualization</h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            {modes.map((mode, index) => (
+                                <div
+                                    key={index}
+                                    className={cn(
+                                        "flex flex-col items-center p-6 border rounded-lg transition-colors",
+                                        isChartSelected(index)
+                                            ? "opacity-50 cursor-not-allowed bg-muted/30"
+                                            : "cursor-pointer hover:bg-muted/50"
+                                    )}
+                                    onClick={() => {
+                                        if (!isChartSelected(index)) {
+                                            handleAddChart(index);
+                                        }
+                                    }}
+                                >
+                                    <div className="mb-4 text-muted-foreground">
+                                        {mode.icon}
+                                    </div>
+                                    <p className="text-sm font-medium">{mode.name}</p>
+                                    <p className="text-sm text-muted-foreground text-center mt-1">{mode.description}</p>
+                                    {isChartSelected(index) && (
+                                        <p className="text-xs text-muted-foreground mt-2">Already selected</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
