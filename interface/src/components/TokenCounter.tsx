@@ -160,16 +160,13 @@ export function TokenCounter({ text, model, onTokenSelection }: TokenCounterProp
 
                 <Separator className="my-2" />
 
-                <div className="flex items-center justify-between">
-                    <span className="text-xs ">Token Count</span>
-                    <div className="text-sm ">
-                        {tokenData.length}
-                        {highlightedTokens.length > 0 && (
-                            <span className="text-xs  ml-1">
-                                ({highlightedTokens.length} selected)
-                            </span>
-                        )}
-                    </div>
+                <div className="flex items-center justify-between text-xs">
+                    <span>Token Count: {tokenData.length}</span>
+                    {highlightedTokens.length > 0 && (
+                        <span className="text-xs  ml-1">
+                            ({highlightedTokens.length} selected)
+                        </span>
+                    )}
                 </div>
             </>
         );

@@ -4,9 +4,10 @@ export interface Message {
 }
 
 export interface Conversation {
+    id: string;
     type: "chat" | "base";
     model: string;
-    title: string;
+    name: string;
     messages: Message[];
     prompt: string;
     isExpanded: boolean;

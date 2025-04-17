@@ -16,9 +16,10 @@ import { ModeToggle } from "@/components/ModeToggle";
 
 // Helper function to create default conversations (consistent IDs)
 const createDefaultConversation = (type: "chat" | "base", model: string): Conversation => ({
+    name: "Untitled",
     type: type,
     model: model,
-    title: `${type === "chat" ? "Conversation" : "Prompt"}`,
+    id: "Untitled",
     messages: [{ role: "user", content: "" }],
     prompt: "",
     isExpanded: true,
@@ -55,13 +56,21 @@ export function Playground() {
             setIsLoading(false);
         }
     };
+    
+    const handleIDChange = (id: string, newID: string) => {
+        setActiveConversations(prev => prev.map(conv =>
+            conv.id === id
+                ? { ...conv, title: newID }
+                : conv
+        ));
+    }
 
     // Update handleLoadConversation to ADD to active conversations
     const handleLoadConversation = (conversationToLoad: Conversation) => {
         // Check if the conversation (by ID) is already active
-        if (activeConversations.some(conv => conv.title === conversationToLoad.title)) {
+        if (activeConversations.some(conv => conv.id === conversationToLoad.id)) {
 
-            console.log("Conversation already active:", conversationToLoad.title);
+            console.log("Conversation already active:", conversationToLoad.id);
 
             return;
         }
@@ -77,9 +86,8 @@ export function Playground() {
 
     // Update handleSaveConversation to find the conversation in activeConversations
     const handleSaveConversation = (id: string) => {
-        const conversationToSave = activeConversations.find(conv => conv.title === id);
+        const conversationToSave = activeConversations.find(conv => conv.id === id);
         if (conversationToSave) {
-            const now = new Date();
             // Create a saveable version (clean up transient flags if any)
             const savedVersion: Conversation = {
                 ...conversationToSave,
@@ -88,7 +96,7 @@ export function Playground() {
 
             setSavedConversations(prev => {
                 // Check if a conversation with the same ID already exists
-                const existingIndex = prev.findIndex(conv => conv.title === savedVersion.title);
+                const existingIndex = prev.findIndex(conv => conv.id === savedVersion.id);
                 if (existingIndex !== -1) {
                     // Update existing conversation
                     const updatedSaved = [...prev];
@@ -100,7 +108,7 @@ export function Playground() {
                 }
             });
             // Optionally, update the title in the active conversation to remove "(unsaved)" if applicable
-            handleUpdateConversation(id, { title: savedVersion.title });
+            handleUpdateConversation(id, { title: savedVersion.id });
         }
     };
 
@@ -108,7 +116,7 @@ export function Playground() {
     const handleDeleteConversation = (id: string) => {
         // Remove from active list
         setActiveConversations(prev => {
-            const remaining = prev.filter(conv => conv.title !== id);
+            const remaining = prev.filter(conv => conv.id !== id);
             return remaining;
         });
     };
@@ -116,7 +124,7 @@ export function Playground() {
     // Add handler to update a specific active conversation
     const handleUpdateConversation = (id: string, updates: Partial<Conversation>) => {
         setActiveConversations(prev => prev.map(conv =>
-            conv.title === id
+            conv.id === id
                 ? { ...conv, ...updates }
                 : conv
         ));
@@ -183,6 +191,7 @@ export function Playground() {
                                 onUpdateConversation={handleUpdateConversation}
                                 onSaveConversation={handleSaveConversation}
                                 onDeleteConversation={handleDeleteConversation}
+                                onIDChange={handleIDChange}
                             />
                         </div>
 

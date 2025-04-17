@@ -9,11 +9,9 @@ class Message(BaseModel):
     content: str
 
 class Conversation(BaseModel):
-    id: str
     type: Literal["chat", "base"]
     model: str
-    title: str
-    systemMessage: str
+    name: str
     messages: List[Message]
     prompt: str
     isExpanded: bool

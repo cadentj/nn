@@ -39,9 +39,10 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                     size="sm"
                     className="w-full"
                     onClick={() => onLoadConversation({
+                        name: `${currentModelType === "chat" ? "Conversation" : "Prompt"}`,
                         type: currentModelType,
                         model: currentModel,
-                        title: `${currentModelType === "chat" ? "Conversation" : "Prompt"}`,
+                        id: `${currentModelType === "chat" ? "Conversation" : "Prompt"}`,
                         messages: [{ role: "user", content: "" }],
                         prompt: "",
                         isExpanded: true,
@@ -59,7 +60,7 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                     <div className="space-y-2">
                         {savedConversations.map((conv) => (
                             <div
-                                key={conv.title}
+                                key={conv.id}
                                 className="p-3 border rounded cursor-pointer"
                                 onClick={() => onLoadConversation(conv)}
                             >
@@ -69,7 +70,7 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                                     ) : (
                                         <FileText size={16}  />
                                     )}
-                                    <div className="text-sm font-medium">{conv.title}</div>
+                                    <div className="text-sm font-medium">{conv.id}</div>
                                 </div>
                                 <div className="text-xs mt-1">
                                     {conv.type === "chat" ? "Chat" : "Prompt"} • {conv.messages.length} messages

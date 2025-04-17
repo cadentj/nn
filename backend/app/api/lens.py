@@ -92,10 +92,7 @@ def logit_lens(request: LensRequest):
                 "layer_results": processed_results,
             })
 
-    print(all_results)
-
     return LensResponse(model_results=all_results)
-
 
 
 @router.post("/lens")
