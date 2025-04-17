@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, ChevronDown, ChevronRight, Trash, Save, Type, Sparkle } from "lucide-react";
+import { Trash, Save, Sparkle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConversationBuilder } from "@/components/ConversationBuilder";
 import { SinglePromptBuilder } from "@/components/SinglePromptBuilder";
@@ -19,7 +19,7 @@ export function Workbench({
     conversations,
     onUpdateConversation,
     onSaveConversation,
-    onDeleteConversation
+    onDeleteConversation,
 }: WorkbenchProps) {
     const toggleConversation = (id: string, isExpanded: boolean) => {
         onUpdateConversation(id, { isExpanded: !isExpanded });
@@ -36,21 +36,13 @@ export function Workbench({
     return (
         <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {conversations.map((conv) => (
-                <Card key={conv.id} className="border overflow-hidden">
+                <Card key={conv.title} className="border overflow-hidden">
                     <div className=" px-4 py-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            {/* <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6"
-                                onClick={() => toggleConversation(conv.id, conv.isExpanded)}
-                            >
-                                {conv.isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                            </Button> */}
                             <div className="flex flex-col">
                                 <Input
                                     value={conv.title}
-                                    onChange={(e) => handleContentUpdate(conv.id, { title: e.target.value })}
+                                    onChange={(e) => handleContentUpdate(conv.title, { title: e.target.value })}
                                     className="border-none shadow-none px-1 py-0 font-bold"
                                 />
                                 <span className="text-xs px-1">{conv.model}</span>
@@ -60,47 +52,45 @@ export function Workbench({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => onSaveConversation(conv.id)}
+                                onClick={() => onSaveConversation(conv.title)}
                             >
                                 <Save size={16}/>
                             </Button>
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => onDeleteConversation(conv.id)}
+                                onClick={() => onDeleteConversation(conv.title)}
                             >
                                 <Trash size={16}/>
                             </Button>
                             <Button
                                 size="icon"
-                                onClick={() => toggleConversation(conv.id, conv.isExpanded)}
+                                onClick={() => toggleConversation(conv.title, conv.isExpanded)}
                             >
                                 <Sparkle size={16}/>
                             </Button>
                         </div>
                     </div>
 
-                    {/* {conv.isExpanded && ( */}
                     <div >
                         {conv.type === "chat" ? (
                             <ConversationBuilder
-                                systemMessage={conv.systemMessage}
-                                onSystemMessageChange={(msg) => handleContentUpdate(conv.id, { systemMessage: msg })}
                                 messages={conv.messages}
-                                onMessagesChange={(msgs) => handleContentUpdate(conv.id, { messages: msgs })}
+                                onMessagesChange={(msgs) => handleContentUpdate(conv.title, { messages: msgs })}
                                 isExpanded={conv.isExpanded}
-                                onTokenSelection={(indices) => handleTokenSelection(conv.id, indices)}
+                                onTokenSelection={(indices) => handleTokenSelection(conv.title, indices)}
+                                modelName={conv.model}
                             />
                         ) : (
                             <SinglePromptBuilder
                                 prompt={conv.prompt}
-                                onPromptChange={(p) => handleContentUpdate(conv.id, { prompt: p })}
+                                onPromptChange={(p) => handleContentUpdate(conv.title, { prompt: p })}
                                 isExpanded={conv.isExpanded}
-                                onTokenSelection={(indices) => handleTokenSelection(conv.id, indices)}
+                                onTokenSelection={(indices) => handleTokenSelection(conv.title, indices)}
+                                modelName={conv.model}
                             />
                         )}
                     </div>
-                    {/* )} */}
                 </Card>
             ))}
             {conversations.length === 0 && (

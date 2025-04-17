@@ -28,6 +28,8 @@ class AppState:
             model = LanguageModel(name, rename=rename)
             models[name] = model
 
+            print("Loaded ", name)
+
         return models
 
 

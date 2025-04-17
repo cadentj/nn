@@ -3,9 +3,6 @@
 import { useState } from "react";
 import {
     Code,
-    History,
-    BarChart3,
-    Plus,
     Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,15 +16,12 @@ import { ModeToggle } from "@/components/ModeToggle";
 
 // Helper function to create default conversations (consistent IDs)
 const createDefaultConversation = (type: "chat" | "base", model: string): Conversation => ({
-    id: `default-${Date.now()}-${Math.random().toString(36).substring(7)}`, // More unique ID
     type: type,
     model: model,
     title: `${type === "chat" ? "Conversation" : "Prompt"}`,
-    systemMessage: "",
     messages: [{ role: "user", content: "" }],
     prompt: "",
     isExpanded: true,
-    lastUpdated: new Date(),
     selectedTokenIndices: [-1],
 });
 
@@ -65,19 +59,16 @@ export function Playground() {
     // Update handleLoadConversation to ADD to active conversations
     const handleLoadConversation = (conversationToLoad: Conversation) => {
         // Check if the conversation (by ID) is already active
-        if (activeConversations.some(conv => conv.id === conversationToLoad.id)) {
+        if (activeConversations.some(conv => conv.title === conversationToLoad.title)) {
 
-            console.log("Conversation already active:", conversationToLoad.id);
+            console.log("Conversation already active:", conversationToLoad.title);
 
             return;
         }
 
         const newActiveConversation = {
             ...conversationToLoad,
-            // Reusing the original ID
-            id: conversationToLoad.id,
             isExpanded: true, // Ensure it's expanded when loaded
-            lastUpdated: new Date(),
             isNew: undefined
         };
 
@@ -86,19 +77,18 @@ export function Playground() {
 
     // Update handleSaveConversation to find the conversation in activeConversations
     const handleSaveConversation = (id: string) => {
-        const conversationToSave = activeConversations.find(conv => conv.id === id);
+        const conversationToSave = activeConversations.find(conv => conv.title === id);
         if (conversationToSave) {
             const now = new Date();
             // Create a saveable version (clean up transient flags if any)
             const savedVersion: Conversation = {
                 ...conversationToSave,
-                lastUpdated: now,
                 isNew: undefined, // Ensure isNew is not saved
             };
 
             setSavedConversations(prev => {
                 // Check if a conversation with the same ID already exists
-                const existingIndex = prev.findIndex(conv => conv.id === savedVersion.id);
+                const existingIndex = prev.findIndex(conv => conv.title === savedVersion.title);
                 if (existingIndex !== -1) {
                     // Update existing conversation
                     const updatedSaved = [...prev];
@@ -118,11 +108,7 @@ export function Playground() {
     const handleDeleteConversation = (id: string) => {
         // Remove from active list
         setActiveConversations(prev => {
-            const remaining = prev.filter(conv => conv.id !== id);
-            // Allow the list to become empty - DO NOT add a default one here
-            // if (remaining.length === 0) {
-            //     return [createDefaultConversation(modelType)];
-            // }
+            const remaining = prev.filter(conv => conv.title !== id);
             return remaining;
         });
     };
@@ -130,8 +116,8 @@ export function Playground() {
     // Add handler to update a specific active conversation
     const handleUpdateConversation = (id: string, updates: Partial<Conversation>) => {
         setActiveConversations(prev => prev.map(conv =>
-            conv.id === id
-                ? { ...conv, ...updates, lastUpdated: new Date() }
+            conv.title === id
+                ? { ...conv, ...updates }
                 : conv
         ));
     };
@@ -145,8 +131,6 @@ export function Playground() {
                         alt="NDIF Logo"
                         className="h-8"
                     />
-                    {/* <div className="h-4 border-l" /> */}
-                    {/* <div className="text-sm font-medium">Logit Lens</div> */}
                 </div>
 
                 <nav className="flex gap-2 items-center">
@@ -172,21 +156,11 @@ export function Playground() {
                 <div className="flex-1 flex flex-col">
                     {/* Top bar within main content */}
                     <div className="p-4 border-b flex items-center justify-between">
-                        {/* ... existing title and buttons ... */}
                         <h1 className="text-lg font-medium">Logit Lens</h1>
-
                         <div className="flex items-center gap-2">
                             <Button variant="ghost" size="sm">
                                 <Code size={16} />
                                 Code
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                                <BarChart3 size={16} />
-                                Compare
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                                <History size={16} />
-                                History
                             </Button>
                             <Button size="sm" onClick={handleRun}>
                                 <Play size={16} />
@@ -196,27 +170,22 @@ export function Playground() {
                     </div>
 
                     <div className="flex flex-1 min-h-0">
-                        {/* Prompt configuration / Workbench area */}
-                        <div className="w-[35%] border-r flex flex-col"> {/* Use flex-col */}
+                        <div className="w-[35%] border-r flex flex-col"> 
                             <div className="p-4 border-b">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-sm font-medium">Model</h2>
                                     <ModelSelector modelName={modelName} setModelName={setModelName} setModelType={setModelType} />
                                 </div>
-                                {/* Add other model config options here if needed */}
                             </div>
 
-                            {/* Pass activeConversations and new handlers to Workbench */}
                             <Workbench
                                 conversations={activeConversations}
                                 onUpdateConversation={handleUpdateConversation}
                                 onSaveConversation={handleSaveConversation}
                                 onDeleteConversation={handleDeleteConversation}
-                            // No longer need modelType or initialConversation here
                             />
                         </div>
 
-                        {/* Token analysis area */}
                         <div className="flex-1 flex flex-col p-4 overflow-auto custom-scrollbar bg-muted">
                             <TestChart
                                 title="Token Analysis"

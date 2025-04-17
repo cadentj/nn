@@ -23,7 +23,7 @@ class LensRequest(BaseModel):
     conversations: List[Conversation]
 
 class TokenizeRequest(BaseModel):
-    text: str
+    text: str | List[Message]
     model: str
 
 # RESPONSE SCHEMAS 

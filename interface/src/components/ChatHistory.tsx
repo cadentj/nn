@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Clock, MessageSquare, FileText } from "lucide-react";
+import { Plus, MessageSquare, FileText, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Conversation } from "@/components/workbench/conversation.types";
 
@@ -39,15 +39,12 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                     size="sm"
                     className="w-full"
                     onClick={() => onLoadConversation({
-                        id: Date.now().toString(),
                         type: currentModelType,
                         model: currentModel,
                         title: `${currentModelType === "chat" ? "Conversation" : "Prompt"}`,
-                        systemMessage: "",
                         messages: [{ role: "user", content: "" }],
                         prompt: "",
                         isExpanded: true,
-                        lastUpdated: new Date(),
                         isNew: true,
                         selectedTokenIndices: [-1]
                     })}
@@ -62,8 +59,8 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                     <div className="space-y-2">
                         {savedConversations.map((conv) => (
                             <div
-                                key={conv.id}
-                                className="p-3 border cursor-pointer"
+                                key={conv.title}
+                                className="p-3 border rounded cursor-pointer"
                                 onClick={() => onLoadConversation(conv)}
                             >
                                 <div className="flex items-center gap-2">
@@ -78,8 +75,8 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                                     {conv.type === "chat" ? "Chat" : "Prompt"} • {conv.messages.length} messages
                                 </div>
                                 <div className="text-xs mt-1 flex items-center gap-1">
-                                    <Clock size={12} />
-                                    {conv.lastUpdated.toLocaleDateString()}
+                                    <Bot size={12} />
+                                    {conv.model}
                                 </div>
                             </div>
                         ))}
