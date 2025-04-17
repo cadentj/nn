@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 20%;
     --card: 0 0% 100%;
@@ -48,9 +48,9 @@
     --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
     --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
-  }
+  } */
   
-  .dark {
+  :root {
     --background: 0 0% 9.02%;
     --foreground: 0 0% 89.80%;
     --card: 0 0% 14.90%;
@@ -122,15 +122,15 @@
 }
 
 @layer base {
-  :root {
+  /* :root {
     --chart-1: 217.22 91.22% 59.80%;
     --chart-2: 221.21 83.19% 53.33%;
     --chart-3: 224.28 76.33% 48.04%;
     --chart-4: 225.93 70.73% 40.20%;
     --chart-5: 224.44 64.29% 32.94%;
-  }
+  } */
 
-  .dark {
+  :root {
     --chart-1: 213.12 93.90% 67.84%;
     --chart-2: 217.22 91.22% 59.80%;
     --chart-3: 221.21 83.19% 53.33%;
