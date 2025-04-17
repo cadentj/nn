@@ -7,6 +7,7 @@ import {
     Plus,
     BarChart,
     LayoutGrid,
+    X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Workbench } from "@/components/Workbench";
@@ -22,6 +23,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import {
     DropdownMenu,
@@ -54,7 +56,7 @@ export function Playground() {
     const [chartData, setChartData] = useState<LogitLensResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const [selectedModes, setSelectedModes] = useState<number[]>([])
+    const [selectedModes, setSelectedModes] = useState<(number | undefined)[]>([])
     const [isSelectingChart, setIsSelectingChart] = useState<boolean>(false)
     const [layout, setLayout] = useState<Layout>("1x1")
     const [selectedPosition, setSelectedPosition] = useState<number | null>(null)
@@ -87,7 +89,7 @@ export function Playground() {
 
     const handleAddChart = (modeIndex: number) => {
         if (selectedPosition === null) return;
-        
+
         setSelectedModes(prev => {
             const newModes = [...prev];
             newModes[selectedPosition] = modeIndex;
@@ -195,6 +197,14 @@ export function Playground() {
         ));
     };
 
+    const handleRemoveChart = (position: number) => {
+        setSelectedModes(prev => {
+            const newModes = [...prev];
+            newModes[position] = undefined;
+            return newModes;
+        });
+    }
+
     return (
         <div className="flex flex-col h-screen">
             <header className="border-b  px-4 py-3 flex items-center justify-between">
@@ -288,25 +298,34 @@ export function Playground() {
                             <div className="flex-1 overflow-auto p-4">
                                 <div className={`grid ${getLayoutGrid()} gap-4 h-full`}>
                                     {Array.from({ length: getBoxCount() }).map((_, index) => (
-                                        <div key={index} className="h-full">
+                                        <div key={index} className="h-full relative">
                                             {selectedModes[index] !== undefined ? (
-                                                <TestChart
-                                                    title={modes[selectedModes[index]].name}
-                                                    description={modes[selectedModes[index]].description}
-                                                    data={chartData}
-                                                    isLoading={isLoading}
-                                                />
+                                                <div className="h-full">
+                                                    <button
+                                                        onClick={() => handleRemoveChart(index)}
+                                                        className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted transition-colors z-10"
+                                                    >
+                                                        <X className="h-4 w-4 text-muted-foreground" />
+                                                    </button>
+                                                    <TestChart
+                                                        title={modes[selectedModes[index]].name}
+                                                        description={modes[selectedModes[index]].description}
+                                                        data={chartData}
+                                                        isLoading={isLoading}
+                                                    />
+                                                </div>
                                             ) : (
                                                 <div 
-                                                    className="flex flex-col items-center justify-center h-full border-2 border-dashed rounded-lg p-8 cursor-pointer hover:bg-muted/50 transition-colors"
+                                                    className="flex flex-col items-center justify-center h-full border border-dashed rounded-lg p-8 cursor-pointer hover:bg-muted/50 transition-colors"
                                                     onClick={() => {
                                                         setSelectedPosition(index);
                                                         setIsSelectingChart(true);
                                                     }}
                                                 >
-                                                    <Plus className="h-12 w-12 text-muted-foreground mb-4" />
-                                                    <p className="text-lg font-medium text-muted-foreground">Add a chart</p>
-                                                    <p className="text-sm text-muted-foreground">Click to select visualization</p>
+                                                    <div className="flex items-center gap-1">
+                                                        <p className="text-sm font-medium text-muted-foreground">Add a chart</p>
+                                                        <Plus className="h-4 w-4 text-muted-foreground" />
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -342,9 +361,9 @@ export function Playground() {
             </div>
 
             {/* Chart selection overlay */}
-            {isSelectingChart && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-background border rounded-lg p-6 max-w-2xl w-full mx-4">
+
+            <Dialog open={isSelectingChart} onOpenChange={setIsSelectingChart}>
+                <DialogContent>
                         <h2 className="text-lg font-medium mb-4">Select Visualization</h2>
                         <div className="grid grid-cols-2 gap-4">
                             {modes.map((mode, index) => (
@@ -373,9 +392,9 @@ export function Playground() {
                                 </div>
                             ))}
                         </div>
-                    </div>
-                </div>
-            )}
+                </DialogContent>
+            </Dialog>
+
         </div>
     );
 }
