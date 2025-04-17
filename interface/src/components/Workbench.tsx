@@ -35,6 +35,15 @@ export function Workbench({
         onUpdateConversation(id, { selectedTokenIndices: indices });
     };
 
+    const checkConversationContent = (conv: Conversation) => {
+        if (conv.type === "chat") {
+            // NOTE: Maybe more rigorous checks here
+            return conv.messages.some(msg => msg.content.length > 0);
+        } else {
+            return conv.prompt.length > 0;
+        }
+    }
+
     return (
         <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {conversations.map((conv) => (
@@ -69,6 +78,7 @@ export function Workbench({
                             <Button
                                 size="icon"
                                 onClick={() => toggleConversation(conv.id, conv.isExpanded)}
+                                disabled={!checkConversationContent(conv)}
                             >
                                 <Sparkle size={16}/>
                             </Button>

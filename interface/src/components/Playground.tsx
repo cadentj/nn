@@ -240,8 +240,8 @@ export function Playground() {
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-80">
-                            The backend is hosted as a deployment on <a href="https://modal.com" className="text-blue-500">Modal</a>. 
-                            We'll ping the server on startup to set up a container for your session.
+                            The backend is hosted as a deployment on <a href="https://modal.com" className="text-blue-500">Modal</a>.
+                            We're starting up a container for your session.
                         </PopoverContent>
                     </Popover>
 
@@ -266,6 +266,25 @@ export function Playground() {
                     <div className="p-4 border-b flex items-center justify-between">
                         <h1 className="text-lg font-medium">Logit Lens</h1>
                         <div className="flex items-center gap-2">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="sm" variant="outline" className="gap-2">
+                                        <LayoutGrid size={16} />
+                                        Layout
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => setLayout("1x1")}>
+                                        1x1
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setLayout("1x2")}>
+                                        1x2
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setLayout("2x2")}>
+                                        2x2
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                             <Button variant="ghost" size="sm" disabled={true}>
                                 <Code size={16} />
                                 Code
@@ -273,8 +292,8 @@ export function Playground() {
                             <TooltipProvider>
                                 <Tooltip delayDuration={0}>
                                     <TooltipTrigger asChild>
-                                        <Button 
-                                            size="sm" 
+                                        <Button
+                                            size="sm"
                                             onClick={handleRun}
                                             className={cn({
                                                 "opacity-50": activeConversations.length === 0 || !selectedModes.some(mode => mode !== undefined)
@@ -390,29 +409,6 @@ export function Playground() {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-
-                            {/* Layout selector */}
-                            <div className="absolute bottom-4 right-4">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button size="sm" variant="outline" className="gap-2">
-                                            <LayoutGrid size={16} />
-                                            Layout
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        <DropdownMenuItem onClick={() => setLayout("1x1")}>
-                                            1x1
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => setLayout("1x2")}>
-                                            1x2
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => setLayout("2x2")}>
-                                            2x2
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
                             </div>
 
                             {/* Inline Chart Selector Overlay */}

@@ -23,11 +23,11 @@ export function TokenCounter({ text, model, onTokenSelection }: TokenCounterProp
     const [startToken, setStartToken] = useState<number | null>(null);
 
     const fetchTokenData = async (currentText: string | Message[] | null, model: string) => {
-        if (!currentText || (Array.isArray(currentText) && currentText.length === 0)) {
-            setTokenData(null);
-            setIsLoading(false);
-            return;
-        }
+        // if (!currentText || (Array.isArray(currentText) && currentText.length === 0)) {
+        //     setTokenData(null);
+        //     setIsLoading(false);
+        //     return;
+        // }
 
         setIsLoading(true);
         try {
@@ -112,9 +112,16 @@ export function TokenCounter({ text, model, onTokenSelection }: TokenCounterProp
     const renderContent = () => {
         if (isLoading) {
             return (
-                <div className="text-sm text-muted-foreground">
-                    tokenizing...
-                </div>
+                <>
+                    <div className="text-xs text-muted-foreground">
+                        tokenizing...
+                    </div>
+                    <Separator className="my-2" />
+                    <div className="flex items-center justify-between text-xs">
+                        <span>Token Count: ?</span>
+                    </div>
+                </>
+
             );
         }
         if (!tokenData) return null;
