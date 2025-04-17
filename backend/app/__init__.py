@@ -28,7 +28,7 @@ def fastapi_app():
         max_age=3600,
     )
 
-    # web_app.include_router(lens, prefix="/api")
+    web_app.include_router(lens, prefix="/api")
     web_app.include_router(tokenize, prefix="/api")
 
     web_app.state.m = AppState()

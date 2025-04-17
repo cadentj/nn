@@ -28,7 +28,7 @@ export function TokenCounter({ text, model, onTokenSelection }: TokenCounterProp
         }
 
         try {
-            const response = await fetch('http://localhost:8000/api/tokenize', {
+            const response = await fetch('https://cadentj--nnsight-backend-fastapi-app.modal.run/api/tokenize', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

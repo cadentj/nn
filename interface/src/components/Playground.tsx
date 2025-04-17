@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Code,
     Play,
@@ -8,6 +8,7 @@ import {
     BarChart,
     LayoutGrid,
     X,
+    Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Workbench } from "@/components/Workbench";
@@ -35,6 +36,8 @@ import { cn } from "@/lib/utils";
 
 type Layout = "1x1" | "1x2" | "2x2";
 
+type ApiStatus = 'loading' | 'success' | 'error';
+
 // Helper function to create default conversations (consistent IDs)
 const createDefaultConversation = (type: "chat" | "base", model: string): Conversation => ({
     name: "Untitled",
@@ -60,6 +63,25 @@ export function Playground() {
     const [isSelectingChart, setIsSelectingChart] = useState<boolean>(false)
     const [layout, setLayout] = useState<Layout>("1x1")
     const [selectedPosition, setSelectedPosition] = useState<number | null>(null)
+    const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
+
+    useEffect(() => {
+        const checkApiStatus = async () => {
+            try {
+                const response = await fetch('https://cadentj--nnsight-backend-fastapi-app.modal.run/');
+                if (response.ok) {
+                    setApiStatus('success');
+                } else {
+                    setApiStatus('error');
+                }
+            } catch (error) {
+                console.error('Error checking API status:', error);
+                setApiStatus('error');
+            }
+        };
+
+        checkApiStatus();
+    }, []);
 
     const getLayoutGrid = () => {
         switch (layout) {
@@ -107,7 +129,7 @@ export function Playground() {
         setIsLoading(true);
         setChartData(null);
         try {
-            const response = await fetch('http://localhost:8000/api/lens', {
+            const response = await fetch('https://cadentj--nnsight-backend-fastapi-app.modal.run/api/lens', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -217,6 +239,19 @@ export function Playground() {
                 </div>
 
                 <nav className="flex gap-2 items-center">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn("text-white", {
+                            "bg-yellow-500 hover:bg-yellow-600": apiStatus === 'loading',
+                            "bg-green-600 hover:bg-green-700": apiStatus === 'success',
+                            "bg-red-600 hover:bg-red-700": apiStatus === 'error',
+                        })}
+                        disabled={apiStatus === 'loading'}
+                    >
+                        {apiStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {apiStatus === 'loading' ? 'Checking...' : apiStatus === 'success' ? 'Ready' : 'Error'}
+                    </Button>
                     <Button variant="ghost" size="sm">NNsight</Button>
                     <Button variant="ghost" size="sm">API reference</Button>
                     <ModeToggle />
