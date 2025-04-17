@@ -106,13 +106,13 @@ export function TestChart({title, description, data, isLoading}: TestChartProps)
 
   if (isLoading) {
       return (
-          <Card className="relative">
+          <Card className="relative h-full flex flex-col">
               <CardHeader>
                   <CardTitle>{title}</CardTitle>
                   <CardDescription>{description}</CardDescription>
               </CardHeader>
-              <CardContent>
-                  <div className="flex items-center justify-center h-60">
+              <CardContent className="flex-grow flex items-center justify-center">
+                  <div className="text-center">
                       <p className="text-muted-foreground">Running analysis...</p>
                   </div>
               </CardContent>
@@ -127,13 +127,13 @@ export function TestChart({title, description, data, isLoading}: TestChartProps)
 
   if (!data || chartData.length === 0) {
       return (
-          <Card className="h-full">
+          <Card className="h-full flex flex-col">
               <CardHeader>
                   <CardTitle>{title}</CardTitle>
                   <CardDescription>{description}</CardDescription>
               </CardHeader>
-              <CardContent>
-                  <div className="flex items-center justify-center h-60">
+              <CardContent className="flex-grow flex items-center justify-center">
+                  <div className="text-center">
                       <p className="text-muted-foreground">No data to display.</p>
                   </div>
               </CardContent>
@@ -142,13 +142,13 @@ export function TestChart({title, description, data, isLoading}: TestChartProps)
   }
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+      <CardContent className="flex-grow">
+        <ChartContainer config={chartConfig} className="w-full h-full">
           <LineChart
             accessibilityLayer
             data={chartData}
