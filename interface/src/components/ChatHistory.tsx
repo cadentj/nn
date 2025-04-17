@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, MessageSquare, FileText, Bot } from "lucide-react";
+import { Plus, MessagesSquare, FileText, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Conversation } from "@/components/workbench/conversation.types";
 
@@ -18,41 +18,22 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
     return (
         <div className="h-full flex flex-col">
             <div className="p-4 border-b ">
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 ">
                     <Button
                         variant={activeTab === "saved" ? "secondary" : "ghost"}
                         size="sm"
                         onClick={() => setActiveTab("saved")}
                     >
-                        Saved
+                        Prompts
                     </Button>
                     <Button
                         variant={activeTab === "recent" ? "secondary" : "ghost"}
                         size="sm"
                         onClick={() => setActiveTab("recent")}
                     >
-                        Recent
+                        Workspaces
                     </Button>
                 </div>
-
-                <Button
-                    size="sm"
-                    className="w-full"
-                    onClick={() => onLoadConversation({
-                        name: `${currentModelType === "chat" ? "Conversation" : "Prompt"}`,
-                        type: currentModelType,
-                        model: currentModel,
-                        id: `${currentModelType === "chat" ? "Conversation" : "Prompt"}`,
-                        messages: [{ role: "user", content: "" }],
-                        prompt: "",
-                        isExpanded: true,
-                        isNew: true,
-                        selectedTokenIndices: [-1]
-                    })}
-                >
-                    <Plus size={16} className="mr-2" />
-                    New {currentModelType === "chat" ? "Conversation" : "Prompt"}
-                </Button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
@@ -66,7 +47,7 @@ export function ChatHistory({ savedConversations, onLoadConversation, currentMod
                             >
                                 <div className="flex items-center gap-2">
                                     {conv.type === "chat" ? (
-                                        <MessageSquare size={16} />
+                                        <MessagesSquare size={16} />
                                     ) : (
                                         <FileText size={16}  />
                                     )}

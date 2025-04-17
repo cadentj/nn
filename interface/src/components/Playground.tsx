@@ -4,6 +4,8 @@ import { useState } from "react";
 import {
     Code,
     Play,
+    Plus,
+    BarChart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Workbench } from "@/components/Workbench";
@@ -13,6 +15,9 @@ import { TestChart } from "@/components/charts/TestChart";
 import { ModelSelector } from "./ModelSelector";
 import { LogitLensResponse } from "@/components/workbench/conversation.types";
 import { ModeToggle } from "@/components/ModeToggle";
+import { Toolbar } from "@/components/Toolbar";
+import { Toggle } from "@/components/ui/toggle";
+import { modes } from "@/components/workbench/modes";
 
 // Helper function to create default conversations (consistent IDs)
 const createDefaultConversation = (type: "chat" | "base", model: string): Conversation => ({
@@ -36,6 +41,9 @@ export function Playground() {
     const [chartData, setChartData] = useState<LogitLensResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
+    const [selectedModes, setSelectedModes] = useState<number[]>([0])
+    const [isOpen, setIsOpen] = useState<boolean>(true)
+
     const handleRun = async () => {
         setIsLoading(true);
         setChartData(null);
@@ -56,11 +64,11 @@ export function Playground() {
             setIsLoading(false);
         }
     };
-    
+
     const handleIDChange = (id: string, newID: string) => {
         setActiveConversations(prev => prev.map(conv =>
             conv.id === id
-                ? { ...conv, title: newID }
+                ? { ...conv, id: newID }
                 : conv
         ));
     }
@@ -108,7 +116,7 @@ export function Playground() {
                 }
             });
             // Optionally, update the title in the active conversation to remove "(unsaved)" if applicable
-            handleUpdateConversation(id, { title: savedVersion.id });
+            handleUpdateConversation(id, { name: savedVersion.id });
         }
     };
 
@@ -170,6 +178,10 @@ export function Playground() {
                                 <Code size={16} />
                                 Code
                             </Button>
+                            <Toggle variant="ghost" size="sm" pressed={isOpen} onClick={() => setIsOpen(!isOpen)} className="mr-2">
+                                <BarChart size={16} />
+                                {isOpen ? "Hide" : "Show"} Options
+                            </Toggle>
                             <Button size="sm" onClick={handleRun}>
                                 <Play size={16} />
                                 Run
@@ -178,11 +190,33 @@ export function Playground() {
                     </div>
 
                     <div className="flex flex-1 min-h-0">
-                        <div className="w-[35%] border-r flex flex-col"> 
+                        <div className="w-[40%] border-r flex flex-col">
                             <div className="p-4 border-b">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-sm font-medium">Model</h2>
-                                    <ModelSelector modelName={modelName} setModelName={setModelName} setModelType={setModelType} />
+
+                                    <div className="flex items-center gap-2">
+                                        <ModelSelector modelName={modelName} setModelName={setModelName} setModelType={setModelType} />
+
+                                        <Button
+                                            size="sm"
+                                            className="w-100"
+                                            onClick={() => handleLoadConversation({
+                                                name: "Untitled",
+                                                type: modelType,
+                                                model: modelName,
+                                                id: "Untitled",
+                                                messages: [{ role: "user", content: "" }],
+                                                prompt: "",
+                                                isExpanded: true,
+                                                isNew: true,
+                                                selectedTokenIndices: [-1]
+                                            })}
+                                        >
+                                            New
+                                            <Plus size={16} />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -195,13 +229,27 @@ export function Playground() {
                             />
                         </div>
 
-                        <div className="flex-1 flex flex-col p-4 overflow-auto custom-scrollbar bg-muted">
-                            <TestChart
-                                title="Token Analysis"
-                                description="Probability of the target token per layer."
-                                data={chartData}
-                                isLoading={isLoading}
-                            />
+                        {/* Container for charts and toolbar, relative positioning needed for absolute toolbar */}
+                        <div className="flex-1 flex flex-col overflow-hidden custom-scrollbar bg-muted relative">
+                            {/* Padded container for charts only */}
+                            <div className="flex-1 overflow-auto p-4">
+                                <div className={`grid gap-4 ${
+                                    selectedModes.length === 1 ? 'grid-cols-1 items-center' :
+                                    selectedModes.length === 2 ? 'grid-cols-2 items-center' :
+                                    selectedModes.length >= 3 ? 'grid-cols-2' : ''
+                                }`}>
+                                    {selectedModes.map((mode) => (
+                                        <TestChart
+                                            key={mode}
+                                            title={modes[mode].name}
+                                            description={modes[mode].description}
+                                            data={chartData}
+                                            isLoading={isLoading}
+                                        />
+                                    ))}
+                                </div>
+                            </div> {/* End padded container for charts */}
+                            <Toolbar selectedModes={selectedModes} setSelectedModes={setSelectedModes} isOpen={isOpen} />
                         </div>
                     </div>
                 </div>

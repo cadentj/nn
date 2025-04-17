@@ -134,7 +134,7 @@ export function TestChart({title, description, data, isLoading}: TestChartProps)
               </CardHeader>
               <CardContent>
                   <div className="flex items-center justify-center h-60">
-                      <p className="text-muted-foreground">No data to display yet. Run the analysis.</p>
+                      <p className="text-muted-foreground">No data to display.</p>
                   </div>
               </CardContent>
           </Card>
