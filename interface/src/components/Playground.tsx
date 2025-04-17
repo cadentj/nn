@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
     Code,
     Play,
     Plus,
-    BarChart,
     LayoutGrid,
+    Dot,
     X,
     Loader2,
 } from "lucide-react";
@@ -18,14 +18,8 @@ import { TestChart } from "@/components/charts/TestChart";
 import { ModelSelector } from "./ModelSelector";
 import { LogitLensResponse } from "@/components/workbench/conversation.types";
 import { ModeToggle } from "@/components/ModeToggle";
-import { modes } from "@/components/workbench/modes";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
+import { LogitLensModes } from "@/components/workbench/modes";
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -34,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { ChartSelector } from "./ChartSelector";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type Layout = "1x1" | "1x2" | "2x2";
 
@@ -52,7 +47,7 @@ export function Playground() {
     const [layout, setLayout] = useState<Layout>("1x1")
     const [configuringPosition, setConfiguringPosition] = useState<number | null>(null)
     const [modelLoadStatus, setModelLoadStatus] = useState<ModelLoadStatus>('loading');
-    
+
     const getLayoutGrid = () => {
         switch (layout) {
             case "1x1":
@@ -206,6 +201,11 @@ export function Playground() {
             <header className="border-b  px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <img
+                        src="/images/NSF.png"
+                        alt="NSF Logo"
+                        className="h-8"
+                    />
+                    <img
                         src="/images/NDIF.png"
                         alt="NDIF Logo"
                         className="h-8"
@@ -213,21 +213,35 @@ export function Playground() {
                 </div>
 
                 <nav className="flex gap-2 items-center">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className={cn("text-white", {
-                            "bg-yellow-500 hover:bg-yellow-600": modelLoadStatus === 'loading',
-                            "bg-green-600 hover:bg-green-700": modelLoadStatus === 'success',
-                            "bg-red-600 hover:bg-red-700": modelLoadStatus === 'error',
-                        })}
-                        disabled={modelLoadStatus === 'loading'}
-                    >
-                        {modelLoadStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {modelLoadStatus === 'loading' ? 'Loading Models...' : modelLoadStatus === 'success' ? 'Models Ready' : 'Model Load Error'}
-                    </Button>
-                    <Button variant="ghost" size="sm">NNsight</Button>
-                    <Button variant="ghost" size="sm">API reference</Button>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="secondary"
+                                className={cn({
+                                    "animate-pulse": modelLoadStatus === 'loading'
+                                })}
+                                size="sm"
+                            >
+                                {/* {modelLoadStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} */}
+                                <div
+                                    className={cn("text-white", {
+                                        "text-yellow-500 hover:text-yellow-600 animate-pulse": modelLoadStatus === 'loading',
+                                        "text-green-600 hover:text-green-700": modelLoadStatus === 'success',
+                                        "text-destructive hover:text-destructive": modelLoadStatus === 'error',
+                                    })}
+                                >
+                                    ●
+                                </div>
+                                {modelLoadStatus === 'loading' ? 'Connecting' : modelLoadStatus === 'success' ? 'Ready' : 'Error'}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                            The backend is hosted as a deployment on <a href="https://modal.com" className="text-blue-500">Modal</a>. 
+                            We'll ping the server on startup to set up a container for your session.
+                        </PopoverContent>
+                    </Popover>
+
+                    <Button variant="ghost" onClick={() => window.open("https://nnsight.net", "_blank")} size="sm">NNsight</Button>
                     <ModeToggle />
                 </nav>
             </header>
@@ -319,14 +333,14 @@ export function Playground() {
                                                         <X className="h-4 w-4 text-muted-foreground" />
                                                     </button>
                                                     <TestChart
-                                                        title={modes[selectedModes[index]!].name}
-                                                        description={modes[selectedModes[index]!].description}
+                                                        title={LogitLensModes[selectedModes[index]!].name}
+                                                        description={LogitLensModes[selectedModes[index]!].description}
                                                         data={chartData}
                                                         isLoading={isLoading}
                                                     />
                                                 </div>
                                             ) : (
-                                                <div 
+                                                <div
                                                     className="flex flex-col items-center justify-center h-full border border-dashed rounded-lg p-8 cursor-pointer hover:bg-muted/50 transition-colors"
                                                     onClick={() => {
                                                         setConfiguringPosition(index);
@@ -374,7 +388,7 @@ export function Playground() {
                                     handleAddChart={handleAddChart}
                                 />
                             )}
-                        </div>  
+                        </div>
                     </div>
                 </div>
             </div>

@@ -97,7 +97,7 @@ export function Workbench({
                 </Card>
             ))}
             {conversations.length === 0 && (
-                <p className="text-center py-4">No active conversations. Click 'New' to start.</p>
+                <p className="text-center py-4">No active conversations.</p>
             )}
         </div>
     );

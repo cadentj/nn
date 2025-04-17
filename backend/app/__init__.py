@@ -6,13 +6,18 @@ from .api import lens, tokenize
 from .state import AppState
 
 app = modal.App(name="nnsight-backend")
-image = (modal.Image.debian_slim()
+image = (
+    modal.Image.debian_slim()
     .pip_install("fastapi==0.115.6")
     .pip_install("nnsight==0.4.5")
     .add_local_file("app/config.toml", remote_path="/root/config.toml")
 )
 
-@app.function(image=image)
+
+@app.function(
+    image=image,
+    secrets=[modal.Secret.from_name("ndif"), modal.Secret.from_name("hf")],
+)
 @modal.concurrent(max_inputs=50)
 @modal.asgi_app()
 def fastapi_app():
@@ -39,4 +44,3 @@ def fastapi_app():
         return config.get_model_list()
 
     return web_app
-

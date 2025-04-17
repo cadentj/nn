@@ -18,15 +18,18 @@ export function TokenCounter({ text, model, onTokenSelection }: TokenCounterProp
     const [tokenData, setTokenData] = useState<string[] | null>(null);
     const [highlightedTokens, setHighlightedTokens] = useState<number[]>([]);
     const [isSelecting, setIsSelecting] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const [startToken, setStartToken] = useState<number | null>(null);
 
     const fetchTokenData = async (currentText: string | Message[] | null, model: string) => {
         if (!currentText || (Array.isArray(currentText) && currentText.length === 0)) {
             setTokenData(null);
+            setIsLoading(false);
             return;
         }
 
+        setIsLoading(true);
         try {
             const response = await fetch('https://cadentj--nnsight-backend-fastapi-app.modal.run/api/tokenize', {
                 method: 'POST',
@@ -45,6 +48,8 @@ export function TokenCounter({ text, model, onTokenSelection }: TokenCounterProp
         } catch (err) {
             console.error('Error fetching token data:', err);
             setTokenData(null);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -105,6 +110,13 @@ export function TokenCounter({ text, model, onTokenSelection }: TokenCounterProp
     }
 
     const renderContent = () => {
+        if (isLoading) {
+            return (
+                <div className="text-sm text-muted-foreground">
+                    tokenizing...
+                </div>
+            );
+        }
         if (!tokenData) return null;
 
         return (

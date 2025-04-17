@@ -28,6 +28,7 @@ export function ChatHistory({ savedConversations, onLoadConversation }: ChatHist
                         variant={activeTab === "recent" ? "secondary" : "ghost"}
                         size="sm"
                         onClick={() => setActiveTab("recent")}
+                        disabled={true}
                     >
                         Workspaces
                     </Button>
@@ -63,7 +64,7 @@ export function ChatHistory({ savedConversations, onLoadConversation }: ChatHist
                     </div>
                 ) : (
                     <div className="text-sm  text-center py-8">
-                        Recent conversations will appear here
+                        TBD
                     </div>
                 )}
             </div>

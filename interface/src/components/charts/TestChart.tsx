@@ -117,8 +117,8 @@ export function TestChart({title, description, data, isLoading}: TestChartProps)
                   </div>
               </CardContent>
               <BorderBeam
-                  duration={4}
-                  size={500}
+                  duration={5}
+                  size={300}
                   className="from-transparent bg-primary to-transparent"
               />
           </Card>

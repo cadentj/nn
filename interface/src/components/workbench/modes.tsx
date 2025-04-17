@@ -1,7 +1,7 @@
 import { BarChart, LineChart, Network, Brain } from "lucide-react";
 
 
-export const modes = [
+export const LogitLensModes = [
     {
         name: "Token Analysis",
         description: "Probability of the target token per layer.",

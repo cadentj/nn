@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { modes } from "@/components/workbench/modes"
+import { LogitLensModes } from "@/components/workbench/modes"
 
 interface ChartSelectorProps {
     setConfiguringPosition: (position: number | null) => void;
@@ -14,7 +14,7 @@ export function ChartSelector({ setConfiguringPosition, isChartSelected, handleA
         <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+                className="absolute inset-0 bg-background/50 backdrop-blur-sm"
                 onClick={() => setConfiguringPosition(null)}
             ></div>
             {/* Selection Panel */}
@@ -31,7 +31,7 @@ export function ChartSelector({ setConfiguringPosition, isChartSelected, handleA
                     </Button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                    {modes.map((mode, index) => (
+                    {LogitLensModes.map((mode, index) => (
                         <div
                             key={index}
                             className={cn(
