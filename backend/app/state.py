@@ -5,11 +5,18 @@ from nnsight import LanguageModel
 
 class AppState:
     def __init__(self):
+        self._login()
+        
         # Not using config atm
         _, model_config = self._load_config()
 
         self.model_config = model_config
         self.models = {}
+
+    def _login(self):
+        key = "018cf72e1e3b427f8067e4bf4d9c0aac"
+        from nnsight import CONFIG
+        CONFIG.set_default_api_key(key)
 
     def get_model(self, model_name: str):
         # Check if model is available
