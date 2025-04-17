@@ -29,3 +29,8 @@ interface LayerResults {
 export interface LogitLensResponse {
     model_results: ModelResults[];
 }
+
+export interface Model {
+    name: string;
+    type: "chat" | "base";
+}

@@ -33,56 +33,26 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { ChartSelector } from "./ChartSelector";
 
 type Layout = "1x1" | "1x2" | "2x2";
 
-type ApiStatus = 'loading' | 'success' | 'error';
-
-// Helper function to create default conversations (consistent IDs)
-const createDefaultConversation = (type: "chat" | "base", model: string): Conversation => ({
-    name: "Untitled",
-    type: type,
-    model: model,
-    id: "Untitled",
-    messages: [{ role: "user", content: "" }],
-    prompt: "",
-    isExpanded: true,
-    selectedTokenIndices: [-1],
-});
+type ModelLoadStatus = 'loading' | 'success' | 'error';
 
 export function Playground() {
     const [modelType, setModelType] = useState<"chat" | "base">("base");
     const [modelName, setModelName] = useState<string>("EleutherAI/gpt-j-6b");
     const [savedConversations, setSavedConversations] = useState<Conversation[]>([]);
-    const [activeConversations, setActiveConversations] = useState<Conversation[]>(() => [createDefaultConversation(modelType, modelName)]);
+    const [activeConversations, setActiveConversations] = useState<Conversation[]>([]);
 
     const [chartData, setChartData] = useState<LogitLensResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const [selectedModes, setSelectedModes] = useState<(number | undefined)[]>([])
-    const [isSelectingChart, setIsSelectingChart] = useState<boolean>(false)
     const [layout, setLayout] = useState<Layout>("1x1")
-    const [selectedPosition, setSelectedPosition] = useState<number | null>(null)
-    const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
-
-    useEffect(() => {
-        const checkApiStatus = async () => {
-            try {
-                const response = await fetch('https://cadentj--nnsight-backend-fastapi-app.modal.run/');
-                if (response.ok) {
-                    setApiStatus('success');
-                } else {
-                    setApiStatus('error');
-                }
-            } catch (error) {
-                console.error('Error checking API status:', error);
-                setApiStatus('error');
-            }
-        };
-
-        checkApiStatus();
-    }, []);
-
+    const [configuringPosition, setConfiguringPosition] = useState<number | null>(null)
+    const [modelLoadStatus, setModelLoadStatus] = useState<ModelLoadStatus>('loading');
+    
     const getLayoutGrid = () => {
         switch (layout) {
             case "1x1":
@@ -110,15 +80,14 @@ export function Playground() {
     }
 
     const handleAddChart = (modeIndex: number) => {
-        if (selectedPosition === null) return;
+        if (configuringPosition === null) return;
 
         setSelectedModes(prev => {
             const newModes = [...prev];
-            newModes[selectedPosition] = modeIndex;
+            newModes[configuringPosition] = modeIndex;
             return newModes;
         });
-        setSelectedPosition(null);
-        setIsSelectingChart(false);
+        setConfiguringPosition(null);
     }
 
     const isChartSelected = (modeIndex: number) => {
@@ -227,6 +196,11 @@ export function Playground() {
         });
     }
 
+    // Handler to update model load status based on boolean from child
+    const handleModelLoadStatusUpdate = (success: boolean) => {
+        setModelLoadStatus(success ? 'success' : 'error');
+    };
+
     return (
         <div className="flex flex-col h-screen">
             <header className="border-b  px-4 py-3 flex items-center justify-between">
@@ -243,14 +217,14 @@ export function Playground() {
                         variant="ghost"
                         size="sm"
                         className={cn("text-white", {
-                            "bg-yellow-500 hover:bg-yellow-600": apiStatus === 'loading',
-                            "bg-green-600 hover:bg-green-700": apiStatus === 'success',
-                            "bg-red-600 hover:bg-red-700": apiStatus === 'error',
+                            "bg-yellow-500 hover:bg-yellow-600": modelLoadStatus === 'loading',
+                            "bg-green-600 hover:bg-green-700": modelLoadStatus === 'success',
+                            "bg-red-600 hover:bg-red-700": modelLoadStatus === 'error',
                         })}
-                        disabled={apiStatus === 'loading'}
+                        disabled={modelLoadStatus === 'loading'}
                     >
-                        {apiStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {apiStatus === 'loading' ? 'Checking...' : apiStatus === 'success' ? 'Ready' : 'Error'}
+                        {modelLoadStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {modelLoadStatus === 'loading' ? 'Loading Models...' : modelLoadStatus === 'success' ? 'Models Ready' : 'Model Load Error'}
                     </Button>
                     <Button variant="ghost" size="sm">NNsight</Button>
                     <Button variant="ghost" size="sm">API reference</Button>
@@ -264,9 +238,6 @@ export function Playground() {
                     <ChatHistory
                         savedConversations={savedConversations}
                         onLoadConversation={handleLoadConversation}
-                        // Pass currentModelType
-                        currentModelType={modelType}
-                        currentModel={modelName}
                     />
                 </div>
 
@@ -294,7 +265,12 @@ export function Playground() {
                                     <h2 className="text-sm font-medium">Model</h2>
 
                                     <div className="flex items-center gap-2">
-                                        <ModelSelector modelName={modelName} setModelName={setModelName} setModelType={setModelType} />
+                                        <ModelSelector
+                                            modelName={modelName}
+                                            setModelName={setModelName}
+                                            setModelType={setModelType}
+                                            setLoaded={handleModelLoadStatusUpdate}
+                                        />
 
                                         <Button
                                             size="sm"
@@ -343,8 +319,8 @@ export function Playground() {
                                                         <X className="h-4 w-4 text-muted-foreground" />
                                                     </button>
                                                     <TestChart
-                                                        title={modes[selectedModes[index]].name}
-                                                        description={modes[selectedModes[index]].description}
+                                                        title={modes[selectedModes[index]!].name}
+                                                        description={modes[selectedModes[index]!].description}
                                                         data={chartData}
                                                         isLoading={isLoading}
                                                     />
@@ -353,8 +329,7 @@ export function Playground() {
                                                 <div 
                                                     className="flex flex-col items-center justify-center h-full border border-dashed rounded-lg p-8 cursor-pointer hover:bg-muted/50 transition-colors"
                                                     onClick={() => {
-                                                        setSelectedPosition(index);
-                                                        setIsSelectingChart(true);
+                                                        setConfiguringPosition(index);
                                                     }}
                                                 >
                                                     <div className="flex items-center gap-1">
@@ -390,46 +365,19 @@ export function Playground() {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                        </div>
+
+                            {/* Inline Chart Selector Overlay */}
+                            {configuringPosition !== null && (
+                                <ChartSelector
+                                    setConfiguringPosition={setConfiguringPosition}
+                                    isChartSelected={isChartSelected}
+                                    handleAddChart={handleAddChart}
+                                />
+                            )}
+                        </div>  
                     </div>
                 </div>
             </div>
-
-            {/* Chart selection overlay */}
-
-            <Dialog open={isSelectingChart} onOpenChange={setIsSelectingChart}>
-                <DialogContent>
-                        <h2 className="text-lg font-medium mb-4">Select Visualization</h2>
-                        <div className="grid grid-cols-2 gap-4">
-                            {modes.map((mode, index) => (
-                                <div
-                                    key={index}
-                                    className={cn(
-                                        "flex flex-col items-center p-6 border rounded-lg transition-colors",
-                                        isChartSelected(index)
-                                            ? "opacity-50 cursor-not-allowed bg-muted/30"
-                                            : "cursor-pointer hover:bg-muted/50"
-                                    )}
-                                    onClick={() => {
-                                        if (!isChartSelected(index)) {
-                                            handleAddChart(index);
-                                        }
-                                    }}
-                                >
-                                    <div className="mb-4 text-muted-foreground">
-                                        {mode.icon}
-                                    </div>
-                                    <p className="text-sm font-medium">{mode.name}</p>
-                                    <p className="text-sm text-muted-foreground text-center mt-1">{mode.description}</p>
-                                    {isChartSelected(index) && (
-                                        <p className="text-xs text-muted-foreground mt-2">Already selected</p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                </DialogContent>
-            </Dialog>
-
         </div>
     );
 }

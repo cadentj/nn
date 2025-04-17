@@ -8,11 +8,9 @@ import { Conversation } from "@/components/workbench/conversation.types";
 interface ChatHistoryProps {
     savedConversations: Conversation[];
     onLoadConversation: (conversation: Conversation) => void;
-    currentModelType: "chat" | "base";
-    currentModel: string;
 }
 
-export function ChatHistory({ savedConversations, onLoadConversation, currentModelType, currentModel }: ChatHistoryProps) {
+export function ChatHistory({ savedConversations, onLoadConversation }: ChatHistoryProps) {
     const [activeTab, setActiveTab] = useState<"saved" | "recent">("saved");
 
     return (

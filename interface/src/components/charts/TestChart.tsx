@@ -127,7 +127,7 @@ export function TestChart({title, description, data, isLoading}: TestChartProps)
 
   if (!data || chartData.length === 0) {
       return (
-          <Card>
+          <Card className="h-full">
               <CardHeader>
                   <CardTitle>{title}</CardTitle>
                   <CardDescription>{description}</CardDescription>
