@@ -19,7 +19,6 @@ export function Toolbar({ selectedModes, setSelectedModes, isOpen }: ToolbarProp
     }
 
     return (
-        // Absolute positioning container, flush left/right/bottom, z-index ensures it's above charts
         <div className="absolute bottom-0 left-0 right-0 z-10">
 
             {/* Panel container: Handles background, border, shadow, and height/opacity transition */}
