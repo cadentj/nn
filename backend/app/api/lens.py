@@ -1,10 +1,10 @@
 from collections import defaultdict
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 import torch as t
 
-from ..state import state
 from ..schema import LensRequest, LensResponse
+from ..state import AppState
 
 router = APIRouter()
 
@@ -69,10 +69,10 @@ def _process_results(model, results):
     return processed_results
 
 
-def logit_lens(request: LensRequest):
+def logit_lens(lens_request: LensRequest, state: AppState):
     # Batch prompts for the same model
     tasks = defaultdict(list)
-    for conversation in request.conversations:
+    for conversation in lens_request.conversations:
         task = {
             "prompt": conversation.prompt,
             "selected_token_indices": conversation.selectedTokenIndices,
@@ -96,5 +96,6 @@ def logit_lens(request: LensRequest):
 
 
 @router.post("/lens")
-async def lens(request: LensRequest):
-    return logit_lens(request)
+async def lens(lens_request: LensRequest, request: Request):
+    state = request.app.state.m
+    return logit_lens(lens_request, state)

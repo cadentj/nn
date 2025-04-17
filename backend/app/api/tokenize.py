@@ -1,19 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from ..schema import TokenizeRequest
-from ..state import state
 
 router = APIRouter()
 
 
 @router.post("/tokenize")
-async def tokenize(request: TokenizeRequest):
-    tok = state.get_model(request.model).tokenizer
-    if isinstance(request.text, list):
+async def tokenize(tokenize_request: TokenizeRequest, request: Request):
+    state = request.app.state.m
+    
+    tok = state.get_model(tokenize_request.model).tokenizer
+    if isinstance(tokenize_request.text, list):
         formatted = tok.apply_chat_template(
-            request.text, tokenize=False, add_special_tokens=False
+            tokenize_request.text, tokenize=False, add_special_tokens=False
         )
         tokens = tok.batch_decode(tok.encode(formatted))
     else:
-        tokens = tok.batch_decode(tok.encode(request.text))
+        tokens = tok.batch_decode(tok.encode(tokenize_request.text))
     return {"tokens": tokens}
