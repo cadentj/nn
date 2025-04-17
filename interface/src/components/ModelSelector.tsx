@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select"
 import { Dispatch, SetStateAction, useState, useEffect } from "react";
 import { Model } from "./workbench/conversation.types";
+import { cn } from "@/lib/utils";
 
 interface ModelSelectorProps {
     modelName: string;
@@ -77,7 +78,9 @@ export function ModelSelector({ modelName, setModelName, setModelType, setLoaded
 
     return (
         <Select value={modelName} onValueChange={handleModelTypeChange}>
-            <SelectTrigger className="w-[220px]">
+            <SelectTrigger className={cn("w-[220px]", {
+                "animate-pulse": baseModels.length === 0 && chatModels.length === 0
+            })}>
                 <SelectValue placeholder="Select a model" />
             </SelectTrigger>
             <SelectContent>

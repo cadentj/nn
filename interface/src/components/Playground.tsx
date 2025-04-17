@@ -6,9 +6,7 @@ import {
     Play,
     Plus,
     LayoutGrid,
-    Dot,
     X,
-    Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Workbench } from "@/components/Workbench";
@@ -29,6 +27,12 @@ import {
 import { cn } from "@/lib/utils";
 import { ChartSelector } from "./ChartSelector";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Layout = "1x1" | "1x2" | "2x2";
 
@@ -252,6 +256,7 @@ export function Playground() {
                     <ChatHistory
                         savedConversations={savedConversations}
                         onLoadConversation={handleLoadConversation}
+                        activeConversationIds={activeConversations.map(conv => conv.id)}
                     />
                 </div>
 
@@ -261,14 +266,31 @@ export function Playground() {
                     <div className="p-4 border-b flex items-center justify-between">
                         <h1 className="text-lg font-medium">Logit Lens</h1>
                         <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" disabled={true}>
                                 <Code size={16} />
                                 Code
                             </Button>
-                            <Button size="sm" onClick={handleRun}>
-                                <Play size={16} />
-                                Run
-                            </Button>
+                            <TooltipProvider>
+                                <Tooltip delayDuration={0}>
+                                    <TooltipTrigger asChild>
+                                        <Button 
+                                            size="sm" 
+                                            onClick={handleRun}
+                                            className={cn({
+                                                "opacity-50": activeConversations.length === 0 || !selectedModes.some(mode => mode !== undefined)
+                                            })}
+                                        >
+                                            <Play size={16} />
+                                            Run
+                                        </Button>
+                                    </TooltipTrigger>
+                                    {(activeConversations.length === 0 || !selectedModes.some(mode => mode !== undefined)) && (
+                                        <TooltipContent side="bottom">
+                                            <p>{activeConversations.length === 0 ? 'No conversations active' : 'No charts selected'}</p>
+                                        </TooltipContent>
+                                    )}
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
                     </div>
 
@@ -286,24 +308,37 @@ export function Playground() {
                                             setLoaded={handleModelLoadStatusUpdate}
                                         />
 
-                                        <Button
-                                            size="sm"
-                                            className="w-100"
-                                            onClick={() => handleLoadConversation({
-                                                name: "Untitled",
-                                                type: modelType,
-                                                model: modelName,
-                                                id: "Untitled",
-                                                messages: [{ role: "user", content: "" }],
-                                                prompt: "",
-                                                isExpanded: true,
-                                                isNew: true,
-                                                selectedTokenIndices: [-1]
-                                            })}
-                                        >
-                                            New
-                                            <Plus size={16} />
-                                        </Button>
+                                        <TooltipProvider>
+                                            <Tooltip delayDuration={0} >
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        size="sm"
+                                                        className={cn("w-100", {
+                                                            "opacity-50": activeConversations.some(conv => conv.id === "Untitled")
+                                                        })}
+                                                        onClick={() => handleLoadConversation({
+                                                            name: "Untitled",
+                                                            type: modelType,
+                                                            model: modelName,
+                                                            id: "Untitled",
+                                                            messages: [{ role: "user", content: "" }],
+                                                            prompt: "",
+                                                            isExpanded: true,
+                                                            isNew: true,
+                                                            selectedTokenIndices: [-1]
+                                                        })}
+                                                    >
+                                                        New
+                                                        <Plus size={16} />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                {activeConversations.some(conv => conv.id === "Untitled") && (
+                                                    <TooltipContent side="right">
+                                                        <p>'Untitled' already exists.</p>
+                                                    </TooltipContent>
+                                                )}
+                                            </Tooltip>
+                                        </TooltipProvider>
                                     </div>
                                 </div>
                             </div>
@@ -361,8 +396,8 @@ export function Playground() {
                             <div className="absolute bottom-4 right-4">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm" className="gap-2">
-                                            <LayoutGrid className="h-4 w-4" />
+                                        <Button size="sm" variant="outline" className="gap-2">
+                                            <LayoutGrid size={16} />
                                             Layout
                                         </Button>
                                     </DropdownMenuTrigger>
